@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.2
+
+- Matched the connection-information screen to PocketLab's font sizes, colors, labels, and spacing.
+- Matched the Wi-Fi QR screen to PocketLab's proven 120-pixel QR layout and visual hierarchy.
+
 ## v0.1.1
 
 - Added a persistent connection-information screen at startup.

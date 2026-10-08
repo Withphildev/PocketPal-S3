@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.1.1.** The firmware compiles for the M5StickS3, but still needs physical-device validation.
+> **Early development — v0.1.2.** The firmware compiles for the M5StickS3, but still needs physical-device validation.
 
 ## First milestone
 
@@ -16,6 +16,7 @@ PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5
 - Live state synchronization between the browser and device.
 - Browser controls for every care action and pet naming.
 - Three-screen onboarding: connection details, Wi-Fi QR, then the pet app.
+- PocketLab-matched connection typography, colors, spacing, and QR layout.
 - Double-press the blue Face button to go back one screen.
 - No cloud account, telemetry, or internet connection required.
 

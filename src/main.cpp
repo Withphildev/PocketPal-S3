@@ -5,7 +5,7 @@
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.1.1";
+constexpr char kVersion[] = "v0.1.2";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 125;
@@ -156,28 +156,43 @@ void drawMainScreen() {
 }
 
 void drawConnectionInfo() {
-    M5.Display.fillScreen(0x20A4);
-    M5.Display.setTextColor(TFT_WHITE, 0x20A4);
+    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.setTextColor(TFT_CYAN, TFT_BLACK);
     M5.Display.setTextSize(2);
-    M5.Display.setCursor(10, 9);
+    M5.Display.setCursor(6, 3);
     M5.Display.println("PocketPal S3");
+
     M5.Display.setTextSize(1);
-    M5.Display.setTextColor(TFT_CYAN, 0x20A4);
-    M5.Display.setCursor(10, 38);
-    M5.Display.println("1 / 3  CONNECT WEBUI");
-    M5.Display.setTextColor(TFT_WHITE, 0x20A4);
+    M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
+    M5.Display.setCursor(6, 23);
+    M5.Display.println("JOIN WI-FI");
+    M5.Display.setTextColor(TFT_YELLOW, TFT_BLACK);
     M5.Display.setTextSize(2);
-    M5.Display.setCursor(10, 54);
+    M5.Display.setCursor(6, 33);
     M5.Display.println(portal.ssid());
+
     M5.Display.setTextSize(1);
-    M5.Display.setCursor(10, 82);
-    M5.Display.print("Password: ");
+    M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
+    M5.Display.setCursor(6, 52);
+    M5.Display.println("PASSWORD");
+    M5.Display.setTextColor(TFT_YELLOW, TFT_BLACK);
+    M5.Display.setTextSize(2);
+    M5.Display.setCursor(6, 62);
     M5.Display.println(portal.password());
-    M5.Display.setCursor(10, 99);
-    M5.Display.println("Open http://192.168.4.1");
-    M5.Display.setTextColor(TFT_LIGHTGREY, 0x20A4);
-    M5.Display.setCursor(10, 117);
-    M5.Display.println("Face: show QR");
+
+    M5.Display.setTextSize(1);
+    M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
+    M5.Display.setCursor(6, 81);
+    M5.Display.println("OPEN IN BROWSER");
+    M5.Display.setTextColor(TFT_GREEN, TFT_BLACK);
+    M5.Display.setTextSize(2);
+    M5.Display.setCursor(6, 91);
+    M5.Display.println("192.168.4.1");
+
+    M5.Display.setTextColor(TFT_DARKGREY, TFT_BLACK);
+    M5.Display.setTextSize(1);
+    M5.Display.setCursor(6, 119);
+    M5.Display.println("Face: show Wi-Fi QR");
 }
 
 void drawWifiQr() {
@@ -186,7 +201,7 @@ void drawWifiQr() {
     d.setTextSize(2);
     d.setTextColor(TFT_CYAN, TFT_BLACK);
     d.setCursor(6, 4);
-    d.println("2 / 3  Wi-Fi QR");
+    d.println("Wi-Fi QR");
     d.setTextSize(1);
     d.setTextColor(TFT_WHITE, TFT_BLACK);
     d.setCursor(6, 28);
