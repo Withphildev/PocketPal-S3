@@ -1,5 +1,7 @@
 #include "WebPortal.h"
 
+#include <ESPmDNS.h>
+
 namespace {
 constexpr uint16_t kDnsPort = 53;
 
@@ -42,6 +44,7 @@ void WebPortal::begin() {
     WiFi.mode(WIFI_AP);
     WiFi.setSleep(true);
     WiFi.softAP(ssid_.c_str(), password_.c_str());
+    if (MDNS.begin("pocketpal")) MDNS.addService("http", "tcp", 80);
     dns_.start(kDnsPort, "*", WiFi.softAPIP());
     configureRoutes();
     server_.begin();
@@ -115,4 +118,3 @@ void WebPortal::configureRoutes() {
         server_.send(302, "text/plain", "");
     });
 }
-

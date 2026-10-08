@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.3
+
+- Replaced the numeric WebUI address on the connection screen with `http://pocketpal`.
+- Added `pocketpal.local` mDNS service discovery as a fallback.
+- Reduced display brightness from 125 to 90.
+- Slowed the animated pet refresh from 280 ms to 600 ms while preserving immediate input redraws.
+
 ## v0.1.2
 
 - Matched the connection-information screen to PocketLab's font sizes, colors, labels, and spacing.

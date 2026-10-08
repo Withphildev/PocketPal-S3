@@ -5,11 +5,11 @@
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.1.2";
+constexpr char kVersion[] = "v0.1.3";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
-constexpr uint8_t kBrightness = 125;
-constexpr uint32_t kFrameMs = 280;
+constexpr uint8_t kBrightness = 90;
+constexpr uint32_t kFrameMs = 600;
 
 PetEngine pet;
 WebPortal portal(pet);
@@ -187,7 +187,7 @@ void drawConnectionInfo() {
     M5.Display.setTextColor(TFT_GREEN, TFT_BLACK);
     M5.Display.setTextSize(2);
     M5.Display.setCursor(6, 91);
-    M5.Display.println("192.168.4.1");
+    M5.Display.println("http://pocketpal");
 
     M5.Display.setTextColor(TFT_DARKGREY, TFT_BLACK);
     M5.Display.setTextSize(1);
