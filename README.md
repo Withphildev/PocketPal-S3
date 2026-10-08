@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.1.0.** The firmware compiles for the M5StickS3, but still needs its first physical-device test.
+> **Early development — v0.1.1.** The firmware compiles for the M5StickS3, but still needs physical-device validation.
 
 ## First milestone
 
@@ -15,15 +15,19 @@ PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5
 - Private AP-mode WebUI with a larger animated pet room.
 - Live state synchronization between the browser and device.
 - Browser controls for every care action and pet naming.
+- Three-screen onboarding: connection details, Wi-Fi QR, then the pet app.
+- Double-press the blue Face button to go back one screen.
 - No cloud account, telemetry, or internet connection required.
 
 ## WebUI
 
-At startup, PocketPal displays its unique Wi-Fi name and password.
+At startup, PocketPal opens a three-screen flow:
 
-1. Join the displayed `PocketPal-XXXX` Wi-Fi network.
-2. Open `http://192.168.4.1` if the pet room does not appear automatically.
-3. Care actions performed in the browser update the same pet stored on the StickS3.
+1. Read the unique `PocketPal-XXXX` Wi-Fi name, password, and WebUI address.
+2. Press the blue Face button and scan the standard Wi-Fi QR code to join from a phone.
+3. Press the Face button again to launch the on-device pet app. Open `http://192.168.4.1` if the browser room does not appear automatically.
+
+Double-press the Face button to return to the previous screen.
 
 The access-point password is generated from the individual ESP32-S3 rather than shared across every device.
 

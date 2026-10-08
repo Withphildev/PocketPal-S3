@@ -5,7 +5,7 @@
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.1.0";
+constexpr char kVersion[] = "v0.1.1";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 125;
@@ -17,6 +17,10 @@ size_t selectedAction = 0;
 uint32_t frameNumber = 0;
 uint32_t lastFrameAt = 0;
 
+enum class Screen : uint8_t { ConnectionInfo, WifiQr, PetHome };
+enum class FaceGesture : uint8_t { None, Single, Double };
+Screen screen = Screen::ConnectionInfo;
+
 const char *kActionNames[] = {"FEED", "PLAY", "CLEAN", "SLEEP", "PET"};
 const PetAction kActions[] = {PetAction::Feed, PetAction::Play, PetAction::Clean, PetAction::Sleep, PetAction::Pet};
 
@@ -25,6 +29,36 @@ bool pressed(uint8_t pin) {
     if (digitalRead(pin) != LOW || millis() - lastPress[pin] < 280) return false;
     lastPress[pin] = millis();
     return true;
+}
+
+FaceGesture pollFaceGesture(uint32_t now) {
+    static bool rawDown = false;
+    static bool stableDown = false;
+    static uint32_t rawChangedAt = 0;
+    static bool clickPending = false;
+    static uint32_t firstClickAt = 0;
+
+    const bool currentRawDown = digitalRead(kSelectPin) == LOW;
+    if (currentRawDown != rawDown) {
+        rawDown = currentRawDown;
+        rawChangedAt = now;
+    }
+    if (rawDown != stableDown && now - rawChangedAt >= 28) {
+        stableDown = rawDown;
+        if (stableDown) {
+            if (clickPending && now - firstClickAt <= 420) {
+                clickPending = false;
+                return FaceGesture::Double;
+            }
+            clickPending = true;
+            firstClickAt = now;
+        }
+    }
+    if (clickPending && now - firstClickAt > 420) {
+        clickPending = false;
+        return FaceGesture::Single;
+    }
+    return FaceGesture::None;
 }
 
 uint16_t moodColor(const String &mood) {
@@ -90,8 +124,8 @@ void drawMainScreen() {
     M5.Display.setCursor(5, 5);
     M5.Display.print("PocketPal S3 ");
     M5.Display.print(kVersion);
-    M5.Display.setCursor(205, 5);
-    M5.Display.printf("W%u", portal.connectedClients());
+    M5.Display.setCursor(173, 5);
+    M5.Display.printf("2x<  W%u", portal.connectedClients());
 
     drawPet(s, frameNumber % 18 == 0);
     M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -121,7 +155,7 @@ void drawMainScreen() {
     M5.Display.print("Face do");
 }
 
-void drawWelcome() {
+void drawConnectionInfo() {
     M5.Display.fillScreen(0x20A4);
     M5.Display.setTextColor(TFT_WHITE, 0x20A4);
     M5.Display.setTextSize(2);
@@ -130,7 +164,7 @@ void drawWelcome() {
     M5.Display.setTextSize(1);
     M5.Display.setTextColor(TFT_CYAN, 0x20A4);
     M5.Display.setCursor(10, 38);
-    M5.Display.println("JOIN THE PET HOME");
+    M5.Display.println("1 / 3  CONNECT WEBUI");
     M5.Display.setTextColor(TFT_WHITE, 0x20A4);
     M5.Display.setTextSize(2);
     M5.Display.setCursor(10, 54);
@@ -143,7 +177,53 @@ void drawWelcome() {
     M5.Display.println("Open http://192.168.4.1");
     M5.Display.setTextColor(TFT_LIGHTGREY, 0x20A4);
     M5.Display.setCursor(10, 117);
-    M5.Display.println("Starting your pal...");
+    M5.Display.println("Face: show QR");
+}
+
+void drawWifiQr() {
+    auto &d = M5.Display;
+    d.fillScreen(TFT_BLACK);
+    d.setTextSize(2);
+    d.setTextColor(TFT_CYAN, TFT_BLACK);
+    d.setCursor(6, 4);
+    d.println("2 / 3  Wi-Fi QR");
+    d.setTextSize(1);
+    d.setTextColor(TFT_WHITE, TFT_BLACK);
+    d.setCursor(6, 28);
+    d.println("Scan to join");
+    d.setTextColor(TFT_YELLOW, TFT_BLACK);
+    d.setCursor(6, 43);
+    d.println(portal.ssid());
+    d.setCursor(6, 57);
+    d.println(portal.password());
+
+    const String payload = "WIFI:T:WPA;S:" + portal.ssid() + ";P:" + portal.password() + ";H:false;;";
+    d.qrcode(payload.c_str(), 115, 5, 120, 4, false);
+
+    d.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
+    d.setCursor(6, 105);
+    d.println("Face: start pet");
+    d.setCursor(6, 120);
+    d.println("2x Face: back");
+}
+
+void drawActiveScreen() {
+    if (screen == Screen::ConnectionInfo) drawConnectionInfo();
+    else if (screen == Screen::WifiQr) drawWifiQr();
+    else drawMainScreen();
+}
+
+void goBack() {
+    if (screen == Screen::PetHome) screen = Screen::WifiQr;
+    else if (screen == Screen::WifiQr) screen = Screen::ConnectionInfo;
+    drawActiveScreen();
+}
+
+void goForwardOrAct() {
+    if (screen == Screen::ConnectionInfo) screen = Screen::WifiQr;
+    else if (screen == Screen::WifiQr) screen = Screen::PetHome;
+    else pet.apply(kActions[selectedAction]);
+    drawActiveScreen();
 }
 } // namespace
 
@@ -158,13 +238,7 @@ void setup() {
     pinMode(kNextPin, INPUT_PULLUP);
     pet.begin();
     portal.begin();
-    drawWelcome();
-    const uint32_t welcomeStarted = millis();
-    while (millis() - welcomeStarted < 2600) {
-        portal.loop();
-        delay(2);
-    }
-    drawMainScreen();
+    drawConnectionInfo();
 }
 
 void loop() {
@@ -172,19 +246,19 @@ void loop() {
     portal.loop();
     pet.tick(now);
     bool redraw = false;
-    if (pressed(kNextPin)) {
+    if (screen == Screen::PetHome && pressed(kNextPin)) {
         selectedAction = (selectedAction + 1) % (sizeof(kActions) / sizeof(kActions[0]));
         redraw = true;
     }
-    if (pressed(kSelectPin)) {
-        pet.apply(kActions[selectedAction]);
-        redraw = true;
-    }
-    if (redraw || now - lastFrameAt >= kFrameMs) {
+
+    const FaceGesture gesture = pollFaceGesture(now);
+    if (gesture == FaceGesture::Double) goBack();
+    else if (gesture == FaceGesture::Single) goForwardOrAct();
+
+    if (screen == Screen::PetHome && (redraw || now - lastFrameAt >= kFrameMs)) {
         ++frameNumber;
         drawMainScreen();
         lastFrameAt = now;
     }
     delay(2);
 }
-
