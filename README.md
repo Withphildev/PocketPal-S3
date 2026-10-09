@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.3.2.** Sound and Motion Reactions are working on physical hardware and undergoing threshold tuning.
+> **Early development — v0.4.0.** Sound and Motion Reactions are working on physical hardware, and the redesigned WebUI is ready for device testing.
 
 ## First milestone
 
@@ -41,6 +41,14 @@ Double-press the Face button to return to the previous screen.
 The access-point password is generated from the individual ESP32-S3 rather than shared across every device.
 
 PocketPal also advertises `http://pocketpal.local` through mDNS as a fallback on clients that prefer `.local` hostnames.
+
+The responsive WebUI is organized into three sections:
+
+- **Home:** live room, pet identity, mood, age, and care stats.
+- **Care:** large touch-friendly controls for feeding, playing, cleaning, sleeping, and petting.
+- **Sensors:** live sound and motion meters, sensitivity settings, microphone mute, and privacy status.
+
+The interface is bundled inside the firmware with no external fonts, scripts, images, or internet dependencies.
 
 ## Sound Reactions and privacy
 
@@ -85,12 +93,11 @@ The environment uses the same tested M5StickS3 board configuration as PocketLab.
 
 ## Planned
 
-1. Physical-device testing and threshold tuning for Motion Interactions.
-2. WebUI redesign: refined room, responsive controls, navigation, and live sound/motion feedback.
-3. Original production pet artwork and expanded animation states.
-4. Progression and content: personality, growth, inventory, memories, achievements, decorations, and mini-games.
-5. Data and connectivity: save backup/restore, optional home-network mode, and carefully designed BLE visits.
-6. Release preparation: battery testing, stability testing, privacy documentation, final packaging, and M5Burner submission.
+1. Physical-device testing and threshold tuning for Motion Interactions and the redesigned WebUI.
+2. Original production pet artwork and expanded animation states.
+3. Progression and content: personality, growth, inventory, memories, achievements, decorations, and mini-games.
+4. Data and connectivity: save backup/restore, optional home-network mode, and carefully designed BLE visits.
+5. Release preparation: battery testing, stability testing, privacy documentation, final packaging, and M5Burner submission.
 
 ## License
 

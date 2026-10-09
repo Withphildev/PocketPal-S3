@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.0
+
+- Redesigned the offline WebUI with a richer pet room and clearer visual hierarchy.
+- Added Home, Care, and Sensors navigation optimized for phones and desktop browsers.
+- Added larger touch-friendly care controls with short descriptions.
+- Added persistent room-level sound and motion status chips.
+- Refined the live stats, pet identity, naming, sensor meters, and privacy presentation.
+- Added responsive layouts, accessible labels, live status messaging, and reduced-motion support.
+- Kept the complete interface embedded in firmware with no external web dependencies.
+
 ## v0.3.2
 
 - Swapped the landscape Left and Right motion results so sprite movement follows the physical device.
