@@ -5,11 +5,12 @@
 #include <WiFi.h>
 
 #include "PetEngine.h"
+#include "MotionSensor.h"
 #include "SoundSensor.h"
 
 class WebPortal {
   public:
-    WebPortal(PetEngine &pet, SoundSensor &sound);
+    WebPortal(PetEngine &pet, SoundSensor &sound, MotionSensor &motion);
     void begin();
     void loop();
     const String &ssid() const;
@@ -19,6 +20,7 @@ class WebPortal {
   private:
     PetEngine &pet_;
     SoundSensor &sound_;
+    MotionSensor &motion_;
     WebServer server_{80};
     DNSServer dns_;
     String ssid_;
@@ -29,5 +31,6 @@ class WebPortal {
     void handleAction();
     void handleName();
     void handleSound();
+    void handleMotion();
     static String jsonEscape(const String &value);
 };

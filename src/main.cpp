@@ -1,12 +1,13 @@
 #include <Arduino.h>
 #include <M5Unified.h>
 
+#include "MotionSensor.h"
 #include "PetEngine.h"
 #include "SoundSensor.h"
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.2.0";
+constexpr char kVersion[] = "v0.3.0";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 90;
@@ -14,11 +15,13 @@ constexpr uint32_t kFrameMs = 600;
 
 PetEngine pet;
 SoundSensor sound;
-WebPortal portal(pet, sound);
+MotionSensor motion;
+WebPortal portal(pet, sound, motion);
 size_t selectedAction = 0;
 uint32_t frameNumber = 0;
 uint32_t lastFrameAt = 0;
 SoundLevel lastDrawnSoundLevel = SoundLevel::Unavailable;
+MotionState lastDrawnMotionState = MotionState::Unavailable;
 
 enum class Screen : uint8_t { ConnectionInfo, WifiQr, PetHome };
 enum class FaceGesture : uint8_t { None, Single, Double };
@@ -83,11 +86,18 @@ void drawStat(int x, int y, const char *label, uint8_t value, uint16_t color) {
     if (width > 0) M5.Display.fillRoundRect(x + 20, y + 2, width, 3, 1, color);
 }
 
-void drawPet(const PetSnapshot &s, SoundLevel soundLevel, bool blink) {
+void drawPet(const PetSnapshot &s, SoundLevel soundLevel, MotionState motionState, bool blink) {
     int bob = (frameNumber % 4 < 2) ? 0 : 2;
     if (soundLevel == SoundLevel::Medium) bob -= (frameNumber % 2) * 4;
     if (soundLevel == SoundLevel::High) bob -= (frameNumber % 2) * 8;
-    const int cx = 57;
+    int motionX = 0;
+    if (motionState == MotionState::TiltLeft) motionX = -5;
+    else if (motionState == MotionState::TiltRight) motionX = 5;
+    else if (motionState == MotionState::Shake) motionX = frameNumber % 2 ? -6 : 6;
+    else if (motionState == MotionState::Rocking) motionX = frameNumber % 4 < 2 ? -4 : 4;
+    if (motionState == MotionState::TiltForward) bob += 3;
+    else if (motionState == MotionState::TiltBack) bob -= 3;
+    const int cx = 57 + motionX;
     const int cy = 62 + bob;
     const uint16_t body = s.health < 35 ? TFT_LIGHTGREY : TFT_GREEN;
     M5.Display.fillTriangle(cx - 25, cy - 23, cx - 12, cy - 43, cx - 2, cy - 21, body);
@@ -141,6 +151,7 @@ void drawPet(const PetSnapshot &s, SoundLevel soundLevel, bool blink) {
 void drawMainScreen() {
     const PetSnapshot s = pet.snapshot();
     const SoundSnapshot audio = sound.snapshot();
+    const MotionSnapshot movement = motion.snapshot();
     M5.Display.fillScreen(TFT_BLACK);
     M5.Display.fillRect(0, 0, 240, 17, 0x2104);
     M5.Display.setTextColor(TFT_WHITE, 0x2104);
@@ -151,11 +162,15 @@ void drawMainScreen() {
     M5.Display.setCursor(173, 5);
     M5.Display.printf("2x<  W%u", portal.connectedClients());
 
-    drawPet(s, audio.level, frameNumber % 18 == 0);
+    drawPet(s, audio.level, movement.state, frameNumber % 18 == 0);
     M5.Display.setTextSize(1);
     M5.Display.setTextColor(audio.level == SoundLevel::High ? TFT_YELLOW : TFT_CYAN, TFT_BLACK);
     M5.Display.setCursor(7, 101);
     M5.Display.printf("MIC:%s", SoundSensor::shortLabel(audio.level));
+    M5.Display.setTextColor(movement.state == MotionState::Shake || movement.state == MotionState::Rocking ? TFT_YELLOW : TFT_GREEN,
+                            TFT_BLACK);
+    M5.Display.setCursor(65, 101);
+    M5.Display.printf("MOV:%s", MotionSensor::shortLabel(movement.state));
     M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
     M5.Display.setTextSize(2);
     M5.Display.setCursor(111, 23);
@@ -282,6 +297,7 @@ void setup() {
     pinMode(kNextPin, INPUT_PULLUP);
     pet.begin();
     sound.begin();
+    motion.begin();
     portal.begin();
     drawConnectionInfo();
 }
@@ -292,7 +308,17 @@ void loop() {
     portal.loop();
     pet.tick(now);
     sound.tick(now);
+    motion.tick(now);
     bool redraw = false;
+
+    if (motion.consumeShake()) {
+        pet.apply(PetAction::Play);
+        redraw = true;
+    }
+    if (motion.consumeRocking()) {
+        pet.setSleeping(true, "Rocked to sleep... zzz");
+        redraw = true;
+    }
     if (screen == Screen::PetHome && pressed(kNextPin)) {
         selectedAction = (selectedAction + 1) % (sizeof(kActionNames) / sizeof(kActionNames[0]));
         redraw = true;
@@ -300,6 +326,10 @@ void loop() {
 
     if (sound.level() != lastDrawnSoundLevel) {
         lastDrawnSoundLevel = sound.level();
+        redraw = true;
+    }
+    if (motion.state() != lastDrawnMotionState) {
+        lastDrawnMotionState = motion.state();
         redraw = true;
     }
 

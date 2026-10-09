@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.2.0.** The firmware compiles for the M5StickS3, but Sound Reactions still need calibration on physical hardware.
+> **Early development — v0.3.0.** Sound Reactions are working on physical hardware; Motion Interactions now need hands-on threshold and direction testing.
 
 ## First milestone
 
@@ -22,6 +22,9 @@ PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5
 - Automatic ambient-noise calibration, smoothing, hysteresis, and three sensitivity settings.
 - Microphone mute controls on both the StickS3 and WebUI; muting powers the microphone down.
 - No audio recording, storage, playback, or transmission.
+- IMU-powered tilt reactions, shake-to-play, and gentle rocking-to-sleep.
+- Motion sensitivity control and live motion feedback in the WebUI.
+- Independent shake and rocking cooldowns prevent repeated accidental stat changes.
 - Double-press the blue Face button to go back one screen.
 - No cloud account, telemetry, or internet connection required.
 
@@ -49,7 +52,18 @@ PocketPal samples short microphone windows and immediately reduces each one to a
 - **High:** surprised animation.
 - **Muted:** microphone capture is stopped completely.
 
-The first few seconds after enabling the microphone calibrate the ambient noise floor. Use the WebUI to select low, medium, or high sensitivity. On the device, select the `MIC` action and press the blue Face button to mute or unmute.
+The first few seconds after enabling the microphone calibrate the ambient noise floor. Use the WebUI to select low, medium, or high sensitivity. Low is the default for fresh installs based on initial physical-room testing. On the device, select the `MIC` action and press the blue Face button to mute or unmute.
+
+## Motion Interactions
+
+PocketPal samples the StickS3 accelerometer at 25 Hz and separates steady orientation from quick motion:
+
+- Tilt the StickS3 to make the pet lean in the matching direction.
+- Give it a short shake to trigger Play. An 8-second cooldown prevents repeated stat changes.
+- Gently rock it side-to-side several times to put the pet to sleep. This has a 15-second cooldown.
+- Choose low, medium, or high motion sensitivity in the WebUI.
+
+Hold the device reasonably still for about one second after startup while the motion sensor calibrates. Motion processing is fully local; only the current category and activity meter are exposed to the WebUI.
 
 ## Supported hardware
 
@@ -69,13 +83,12 @@ The environment uses the same tested M5StickS3 board configuration as PocketLab.
 
 ## Planned
 
-1. Physical-room testing and threshold tuning for Sound Reactions.
-2. Motion interactions: shake to play, tilt reactions, rocking to sleep, filtering, and sensitivity.
-3. WebUI redesign: refined room, responsive controls, navigation, and live sound/motion feedback.
-4. Original production pet artwork and expanded animation states.
-5. Progression and content: personality, growth, inventory, memories, achievements, decorations, and mini-games.
-6. Data and connectivity: save backup/restore, optional home-network mode, and carefully designed BLE visits.
-7. Release preparation: battery testing, stability testing, privacy documentation, final packaging, and M5Burner submission.
+1. Physical-device testing and threshold/direction tuning for Motion Interactions.
+2. WebUI redesign: refined room, responsive controls, navigation, and live sound/motion feedback.
+3. Original production pet artwork and expanded animation states.
+4. Progression and content: personality, growth, inventory, memories, achievements, decorations, and mini-games.
+5. Data and connectivity: save backup/restore, optional home-network mode, and carefully designed BLE visits.
+6. Release preparation: battery testing, stability testing, privacy documentation, final packaging, and M5Burner submission.
 
 ## License
 

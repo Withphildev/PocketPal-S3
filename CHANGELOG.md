@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.0
+
+- Added 25 Hz accelerometer sampling with low-pass gravity filtering.
+- Added steady left, right, forward, and back tilt reactions on the device and WebUI.
+- Added shake-to-play with multi-sample confirmation and an 8-second cooldown.
+- Added gentle side-to-side rocking to put the pet to sleep, with a 15-second cooldown.
+- Added low, medium, and high persisted motion sensitivity settings and a WebUI activity meter.
+- Changed the fresh-install sound sensitivity default to Low after physical-room testing.
+
 ## v0.2.0
 
 - Added local-only microphone loudness analysis with no audio storage or transmission.

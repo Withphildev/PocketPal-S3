@@ -25,6 +25,7 @@ class PetEngine {
     bool apply(PetAction action);
     bool apply(const String &actionName);
     bool setName(String name);
+    void setSleeping(bool sleeping, const String &message);
     PetSnapshot snapshot() const;
     void save();
 
@@ -51,4 +52,3 @@ class PetEngine {
     void updateHealth();
     String mood() const;
 };
-

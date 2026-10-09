@@ -107,6 +107,14 @@ bool PetEngine::setName(String name) {
     return true;
 }
 
+void PetEngine::setSleeping(bool sleeping, const String &message) {
+    sleeping_ = sleeping;
+    message_ = message;
+    updateHealth();
+    dirty_ = true;
+    save();
+}
+
 void PetEngine::updateHealth() {
     const int average = (fullness_ + happiness_ + energy_ + cleanliness_) / 4;
     if (average < 25) health_ = clampStat(health_ - 4);
@@ -141,4 +149,3 @@ void PetEngine::save() {
     dirty_ = false;
     lastSave_ = millis();
 }
-

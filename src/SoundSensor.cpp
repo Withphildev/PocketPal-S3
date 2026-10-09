@@ -10,7 +10,7 @@ constexpr char kSoundNamespace[] = "palsound";
 void SoundSensor::begin() {
     preferences_.begin(kSoundNamespace, false);
     muted_ = preferences_.getBool("muted", false);
-    sensitivity_ = std::max<uint8_t>(1, std::min<uint8_t>(3, preferences_.getUChar("sensitivity", 2)));
+    sensitivity_ = std::max<uint8_t>(1, std::min<uint8_t>(3, preferences_.getUChar("sensitivity", 1)));
     if (muted_) {
         level_ = SoundLevel::Muted;
         return;

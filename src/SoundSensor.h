@@ -50,7 +50,7 @@ class SoundSensor {
     bool muted_ = false;
     bool requestActive_ = false;
     bool calibrated_ = false;
-    uint8_t sensitivity_ = 2;
+    uint8_t sensitivity_ = 1;
     uint8_t calibrationCount_ = 0;
     float calibrationTotal_ = 0;
     float noiseFloor_ = 80;
@@ -67,4 +67,3 @@ class SoundSensor {
     void processWindow();
     SoundLevel classify(float rms) const;
 };
-
