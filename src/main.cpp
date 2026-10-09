@@ -2,26 +2,29 @@
 #include <M5Unified.h>
 
 #include "PetEngine.h"
+#include "SoundSensor.h"
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.1.3";
+constexpr char kVersion[] = "v0.2.0";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 90;
 constexpr uint32_t kFrameMs = 600;
 
 PetEngine pet;
-WebPortal portal(pet);
+SoundSensor sound;
+WebPortal portal(pet, sound);
 size_t selectedAction = 0;
 uint32_t frameNumber = 0;
 uint32_t lastFrameAt = 0;
+SoundLevel lastDrawnSoundLevel = SoundLevel::Unavailable;
 
 enum class Screen : uint8_t { ConnectionInfo, WifiQr, PetHome };
 enum class FaceGesture : uint8_t { None, Single, Double };
 Screen screen = Screen::ConnectionInfo;
 
-const char *kActionNames[] = {"FEED", "PLAY", "CLEAN", "SLEEP", "PET"};
+const char *kActionNames[] = {"FEED", "PLAY", "CLEAN", "SLEEP", "PET", "MIC"};
 const PetAction kActions[] = {PetAction::Feed, PetAction::Play, PetAction::Clean, PetAction::Sleep, PetAction::Pet};
 
 bool pressed(uint8_t pin) {
@@ -80,8 +83,10 @@ void drawStat(int x, int y, const char *label, uint8_t value, uint16_t color) {
     if (width > 0) M5.Display.fillRoundRect(x + 20, y + 2, width, 3, 1, color);
 }
 
-void drawPet(const PetSnapshot &s, bool blink) {
-    const int bob = (frameNumber % 4 < 2) ? 0 : 2;
+void drawPet(const PetSnapshot &s, SoundLevel soundLevel, bool blink) {
+    int bob = (frameNumber % 4 < 2) ? 0 : 2;
+    if (soundLevel == SoundLevel::Medium) bob -= (frameNumber % 2) * 4;
+    if (soundLevel == SoundLevel::High) bob -= (frameNumber % 2) * 8;
     const int cx = 57;
     const int cy = 62 + bob;
     const uint16_t body = s.health < 35 ? TFT_LIGHTGREY : TFT_GREEN;
@@ -91,7 +96,7 @@ void drawPet(const PetSnapshot &s, bool blink) {
     M5.Display.fillEllipse(cx - 22, cy + 5, 7, 4, TFT_PINK);
     M5.Display.fillEllipse(cx + 22, cy + 5, 7, 4, TFT_PINK);
 
-    if (s.sleeping || blink) {
+    if (s.sleeping || (blink && soundLevel != SoundLevel::High)) {
         M5.Display.drawLine(cx - 19, cy - 4, cx - 8, cy - 4, TFT_BLACK);
         M5.Display.drawLine(cx + 8, cy - 4, cx + 19, cy - 4, TFT_BLACK);
     } else {
@@ -101,7 +106,7 @@ void drawPet(const PetSnapshot &s, bool blink) {
         M5.Display.drawPixel(cx + 15, cy - 7, TFT_WHITE);
     }
 
-    if (s.mood == "hungry" || s.mood == "unwell") M5.Display.drawCircle(cx, cy + 14, 5, TFT_BLACK);
+    if (soundLevel == SoundLevel::High || s.mood == "hungry" || s.mood == "unwell") M5.Display.drawCircle(cx, cy + 14, 5, TFT_BLACK);
     else {
         M5.Display.drawLine(cx - 6, cy + 11, cx, cy + 15, TFT_BLACK);
         M5.Display.drawLine(cx, cy + 15, cx + 6, cy + 11, TFT_BLACK);
@@ -113,10 +118,29 @@ void drawPet(const PetSnapshot &s, bool blink) {
         M5.Display.setCursor(88, 31);
         M5.Display.print("z");
     }
+
+    M5.Display.setTextSize(1);
+    if (soundLevel == SoundLevel::Low) {
+        M5.Display.setTextColor(TFT_CYAN, TFT_BLACK);
+        M5.Display.setCursor(91, 48);
+        M5.Display.print(")");
+        M5.Display.setCursor(96, 45);
+        M5.Display.print(")");
+    } else if (soundLevel == SoundLevel::Medium) {
+        M5.Display.setTextColor(TFT_PINK, TFT_BLACK);
+        M5.Display.setCursor(88, 35);
+        M5.Display.print("<3");
+    } else if (soundLevel == SoundLevel::High) {
+        M5.Display.setTextColor(TFT_YELLOW, TFT_BLACK);
+        M5.Display.setTextSize(2);
+        M5.Display.setCursor(90, 30);
+        M5.Display.print("!");
+    }
 }
 
 void drawMainScreen() {
     const PetSnapshot s = pet.snapshot();
+    const SoundSnapshot audio = sound.snapshot();
     M5.Display.fillScreen(TFT_BLACK);
     M5.Display.fillRect(0, 0, 240, 17, 0x2104);
     M5.Display.setTextColor(TFT_WHITE, 0x2104);
@@ -127,7 +151,11 @@ void drawMainScreen() {
     M5.Display.setCursor(173, 5);
     M5.Display.printf("2x<  W%u", portal.connectedClients());
 
-    drawPet(s, frameNumber % 18 == 0);
+    drawPet(s, audio.level, frameNumber % 18 == 0);
+    M5.Display.setTextSize(1);
+    M5.Display.setTextColor(audio.level == SoundLevel::High ? TFT_YELLOW : TFT_CYAN, TFT_BLACK);
+    M5.Display.setCursor(7, 101);
+    M5.Display.printf("MIC:%s", SoundSensor::shortLabel(audio.level));
     M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
     M5.Display.setTextSize(2);
     M5.Display.setCursor(111, 23);
@@ -237,7 +265,8 @@ void goBack() {
 void goForwardOrAct() {
     if (screen == Screen::ConnectionInfo) screen = Screen::WifiQr;
     else if (screen == Screen::WifiQr) screen = Screen::PetHome;
-    else pet.apply(kActions[selectedAction]);
+    else if (selectedAction < sizeof(kActions) / sizeof(kActions[0])) pet.apply(kActions[selectedAction]);
+    else sound.toggleMuted();
     drawActiveScreen();
 }
 } // namespace
@@ -252,17 +281,25 @@ void setup() {
     pinMode(kSelectPin, INPUT_PULLUP);
     pinMode(kNextPin, INPUT_PULLUP);
     pet.begin();
+    sound.begin();
     portal.begin();
     drawConnectionInfo();
 }
 
 void loop() {
     const uint32_t now = millis();
+    M5.update();
     portal.loop();
     pet.tick(now);
+    sound.tick(now);
     bool redraw = false;
     if (screen == Screen::PetHome && pressed(kNextPin)) {
-        selectedAction = (selectedAction + 1) % (sizeof(kActions) / sizeof(kActions[0]));
+        selectedAction = (selectedAction + 1) % (sizeof(kActionNames) / sizeof(kActionNames[0]));
+        redraw = true;
+    }
+
+    if (sound.level() != lastDrawnSoundLevel) {
+        lastDrawnSoundLevel = sound.level();
         redraw = true;
     }
 

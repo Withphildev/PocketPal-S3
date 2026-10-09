@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.0
+
+- Added local-only microphone loudness analysis with no audio storage or transmission.
+- Added quiet, low, medium, high, calibrating, muted, and unavailable sound states.
+- Added automatic ambient-noise calibration, RMS smoothing, and transition hysteresis.
+- Added low, medium, and high sensitivity settings persisted in NVS.
+- Added animated sound reactions to the StickS3 pet and WebUI pet.
+- Added a live WebUI loudness meter, privacy explanation, mute control, and sensitivity control.
+- Added an on-device `MIC` action; muting stops the microphone hardware to save power.
+
 ## v0.1.3
 
 - Replaced the numeric WebUI address on the connection screen with `http://pocketpal`.
