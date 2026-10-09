@@ -127,7 +127,7 @@ void MotionSensor::classifyTilt() {
     const float screenX = gravityY_;
     const float screenY = -gravityX_;
     if (std::fabs(screenX) >= std::fabs(screenY) && std::fabs(screenX) >= threshold) {
-        state_ = screenX < 0 ? MotionState::TiltLeft : MotionState::TiltRight;
+        state_ = screenX < 0 ? MotionState::TiltRight : MotionState::TiltLeft;
     } else if (std::fabs(screenY) >= threshold) {
         state_ = screenY < 0 ? MotionState::TiltForward : MotionState::TiltBack;
     } else {

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.2
+
+- Swapped the landscape Left and Right motion results so sprite movement follows the physical device.
+- Reduced Low sound sensitivity by raising its reaction thresholds while leaving Medium and High unchanged.
+
 ## v0.3.1
 
 - Rotated the motion coordinate system 90 degrees left to match the supported landscape orientation.

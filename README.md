@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.3.1.** Sound Reactions are working on physical hardware; Motion Interactions now need hands-on threshold testing.
+> **Early development — v0.3.2.** Sound and Motion Reactions are working on physical hardware and undergoing threshold tuning.
 
 ## First milestone
 
@@ -52,7 +52,7 @@ PocketPal samples short microphone windows and immediately reduces each one to a
 - **High:** surprised animation.
 - **Muted:** microphone capture is stopped completely.
 
-The first few seconds after enabling the microphone calibrate the ambient noise floor. Use the WebUI to select low, medium, or high sensitivity. Low is the default for fresh installs based on initial physical-room testing. On the device, select the `MIC` action and press the blue Face button to mute or unmute.
+The first few seconds after enabling the microphone calibrate the ambient noise floor. Use the WebUI to select low, medium, or high sensitivity. Low is the default for fresh installs and requires substantially louder sound than Medium after physical-room testing. On the device, select the `MIC` action and press the blue Face button to mute or unmute.
 
 ## Motion Interactions
 

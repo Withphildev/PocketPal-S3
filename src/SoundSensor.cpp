@@ -89,7 +89,7 @@ void SoundSensor::processWindow() {
         noiseFloor_ = noiseFloor_ * 0.985f + smoothedRms_ * 0.015f;
     }
 
-    const float factor = sensitivity_ == 3 ? 0.72f : (sensitivity_ == 1 ? 1.35f : 1.0f);
+    const float factor = sensitivity_ == 3 ? 0.72f : (sensitivity_ == 1 ? 1.85f : 1.0f);
     const float highThreshold = std::max(75.0f, noiseFloor_) * 5.2f * factor;
     meter_ = static_cast<uint8_t>(std::min(100.0f, smoothedRms_ * 100.0f / highThreshold));
 
@@ -113,7 +113,7 @@ void SoundSensor::processWindow() {
 }
 
 SoundLevel SoundSensor::classify(float rms) const {
-    const float factor = sensitivity_ == 3 ? 0.72f : (sensitivity_ == 1 ? 1.35f : 1.0f);
+    const float factor = sensitivity_ == 3 ? 0.72f : (sensitivity_ == 1 ? 1.85f : 1.0f);
     const float floor = std::max(75.0f, noiseFloor_);
     if (rms >= floor * 5.2f * factor) return SoundLevel::High;
     if (rms >= floor * 2.8f * factor) return SoundLevel::Medium;
