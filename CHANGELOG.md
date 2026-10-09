@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1
+
+- Rotated the motion coordinate system 90 degrees left to match the supported landscape orientation.
+- Defined landscape as the display upright with the blue Face button on the left.
+- Limited rocking detection to the landscape side-to-side axis.
+
 ## v0.3.0
 
 - Added 25 Hz accelerometer sampling with low-pass gravity filtering.

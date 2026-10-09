@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.3.0.** Sound Reactions are working on physical hardware; Motion Interactions now need hands-on threshold and direction testing.
+> **Early development — v0.3.1.** Sound Reactions are working on physical hardware; Motion Interactions now need hands-on threshold testing.
 
 ## First milestone
 
@@ -65,6 +65,8 @@ PocketPal samples the StickS3 accelerometer at 25 Hz and separates steady orient
 
 Hold the device reasonably still for about one second after startup while the motion sensor calibrates. Motion processing is fully local; only the current category and activity meter are exposed to the WebUI.
 
+The supported orientation is landscape with the blue Face button on the left. Motion directions and side-to-side rocking are mapped to that screen orientation.
+
 ## Supported hardware
 
 - M5Stack StickS3
@@ -83,7 +85,7 @@ The environment uses the same tested M5StickS3 board configuration as PocketLab.
 
 ## Planned
 
-1. Physical-device testing and threshold/direction tuning for Motion Interactions.
+1. Physical-device testing and threshold tuning for Motion Interactions.
 2. WebUI redesign: refined room, responsive controls, navigation, and live sound/motion feedback.
 3. Original production pet artwork and expanded animation states.
 4. Progression and content: personality, growth, inventory, memories, achievements, decorations, and mini-games.

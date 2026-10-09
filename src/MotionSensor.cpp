@@ -91,7 +91,9 @@ void MotionSensor::tick(uint32_t now) {
 }
 
 void MotionSensor::updateRocking(uint32_t now, float dynamic, float shakeThreshold) {
-    const float axis = std::fabs(gravityX_) >= std::fabs(gravityY_) ? gravityX_ : gravityY_;
+    // The supported landscape orientation has the Face button on the left.
+    // In that orientation screen X is the IMU's Y axis.
+    const float axis = gravityY_;
     const float amount = std::fabs(axis);
     if (dynamic >= shakeThreshold * 0.82f || amount < 0.17f || amount > 0.78f) return;
 
@@ -120,10 +122,14 @@ void MotionSensor::updateRocking(uint32_t now, float dynamic, float shakeThresho
 
 void MotionSensor::classifyTilt() {
     const float threshold = sensitivity_ == 3 ? 0.24f : (sensitivity_ == 1 ? 0.42f : 0.33f);
-    if (std::fabs(gravityX_) >= std::fabs(gravityY_) && std::fabs(gravityX_) >= threshold) {
-        state_ = gravityX_ < 0 ? MotionState::TiltLeft : MotionState::TiltRight;
-    } else if (std::fabs(gravityY_) >= threshold) {
-        state_ = gravityY_ < 0 ? MotionState::TiltForward : MotionState::TiltBack;
+    // Rotate the normalized board axes 90 degrees left to match the landscape
+    // screen: Face button on the left, display text upright.
+    const float screenX = gravityY_;
+    const float screenY = -gravityX_;
+    if (std::fabs(screenX) >= std::fabs(screenY) && std::fabs(screenX) >= threshold) {
+        state_ = screenX < 0 ? MotionState::TiltLeft : MotionState::TiltRight;
+    } else if (std::fabs(screenY) >= threshold) {
+        state_ = screenY < 0 ? MotionState::TiltForward : MotionState::TiltBack;
     } else {
         state_ = MotionState::Still;
     }
