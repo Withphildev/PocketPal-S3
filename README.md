@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.6.2.** The forest WebUI has six gradient color themes, and both displays share five color-coded care stats.
+> **Early development — v0.6.3.** The forest WebUI has six gradient color themes, and both displays share five color-coded care stats.
 
 ## First milestone
 

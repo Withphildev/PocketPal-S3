@@ -82,6 +82,18 @@ const server = http.createServer((req, res) => {
         const colors = [['teal', '#163D3A'], ['purple', '#513c77'], ['pine', '#1E352D'],
                         ['navy', '#172A3A'], ['charcoal', '#292A2D'], ['white', '#ffffff']];
         const themeBackgrounds = [];
+        async function checkMoodLayout() {
+            const mood = await page.locator('#mood').boundingBox();
+            const identity = await page.locator('.identity').boundingBox();
+            assert(mood.y >= identity.y + identity.height);
+            assert(Math.abs((mood.x + mood.width / 2) - (identity.x + identity.width / 2)) < 1);
+            const style = await page.locator('#mood').evaluate(element => ({
+                alignment: getComputedStyle(element).textAlign,
+                size: parseFloat(getComputedStyle(element).fontSize)
+            }));
+            assert.equal(style.alignment, 'center');
+            assert.equal(style.size, 20);
+        }
         for (const [theme, base] of colors) {
             await page.locator('[data-theme-choice="' + theme + '"]').click();
             await page.waitForFunction(() => !savingTheme);
@@ -93,6 +105,7 @@ const server = http.createServer((req, res) => {
                 elements.map(element => getComputedStyle(element).backgroundImage));
             for (const background of backgrounds) assert.match(background, /linear-gradient/);
             themeBackgrounds.push(backgrounds[0]);
+            await checkMoodLayout();
             assert.deepEqual(await page.locator('.stat .fill').evaluateAll(elements =>
                 elements.map(element => getComputedStyle(element).backgroundImage)), gradients);
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
@@ -108,6 +121,7 @@ const server = http.createServer((req, res) => {
                 .evaluate((element, pseudo) => getComputedStyle(element, pseudo).color, placeholder ? '::placeholder' : null), 'rgb(80, 101, 92)');
         }
         await page.setViewportSize({width: 320, height: 740});
+        await checkMoodLayout();
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         const brandBox = await page.locator('.brand').boundingBox();
         const onlineBox = await page.locator('.online').boundingBox();
@@ -139,6 +153,7 @@ const server = http.createServer((req, res) => {
         await page.locator('#colorButton').click();
         await page.screenshot({path: path.join(output, 'webui-mobile-preview.png'), fullPage: true});
         await page.setViewportSize({width: 1100, height: 900});
+        await checkMoodLayout();
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         await page.screenshot({path: path.join(output, 'webui-desktop-preview.png')});

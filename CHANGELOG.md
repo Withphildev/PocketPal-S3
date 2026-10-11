@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.3
+
+- Centered and enlarged the Home mood status on its own row beneath the name and age.
+
 ## v0.6.2
 
 - Added Soft White as the sixth saved WebUI theme, keeping Deep Forest Teal as default.
