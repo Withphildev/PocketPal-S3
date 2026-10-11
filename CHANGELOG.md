@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.7.0
+
+- Bundled Nunito Sans variable WOFF2 in flash for consistent offline WebUI typography, with system-font fallback.
+- Replaced mixed emoji and text-symbol controls with original, consistent inline SVG line icons.
+- Refined type sizes, weights, line spacing, touch targets, and responsive spacing.
+- Grouped care stats in one quieter panel with slim gradient bars and aligned numeric values.
+- Kept centered mood, six saved themes, artwork, and device interaction behavior unchanged.
+- Expanded browser QA for font loading, local-only requests, all panels/themes, and long-name mobile layout.
+
 ## v0.6.3
 
 - Centered and enlarged the Home mood status on its own row beneath the name and age.

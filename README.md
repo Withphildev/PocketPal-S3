@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.6.3.** The forest WebUI has six gradient color themes, and both displays share five color-coded care stats.
+> **Early development — v0.7.0.** The forest WebUI has offline typography, matching line icons, and six gradient color themes. Both displays share five color-coded care stats.
 
 ## First milestone
 
@@ -50,6 +50,10 @@ The responsive WebUI is organized into three sections:
 - **Sensors:** live sound and motion meters, sensitivity settings, microphone mute, and privacy status.
 
 The interface is bundled inside the firmware with no external fonts, scripts, images, or internet dependencies.
+Nunito Sans is served locally from flash, with system-font fallback. A consistent
+inline SVG icon set, calmer type hierarchy, and grouped stats keep the interface
+readable across phones and desktop. Font source and license are in
+[assets/fonts](assets/fonts/README.md).
 
 The dragon's WebUI setting is an illustrated forest clearing. Phone and desktop
 layouts use separate crops to keep the waterfall and open grass visible. The

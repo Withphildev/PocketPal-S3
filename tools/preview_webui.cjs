@@ -13,7 +13,12 @@ const state = {name: 'Pip', theme: 'teal', mood: 'joyful', fullness: 82, happine
     message: 'Welcome back, Pip!', sound: {level: 'quiet', meter: 0, sensitivity: 1, muted: false},
     motion: {state: 'still', meter: 0, sensitivity: 2}};
 let failThemeSave = false;
+const commands = [];
 const server = http.createServer((req, res) => {
+    if (req.url === '/fonts/nunito-sans-v1.woff2') {
+        res.setHeader('Content-Type', 'font/woff2');
+        return res.end(fs.readFileSync(path.join(root, 'assets/fonts/nunito-sans-latin.woff2')));
+    }
     if (req.url === '/api/theme' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
@@ -30,6 +35,21 @@ const server = http.createServer((req, res) => {
     if (req.url === '/api/state') {
         res.setHeader('Content-Type', 'application/json');
         return res.end(JSON.stringify(state));
+    }
+    if (['/api/action', '/api/name', '/api/sound', '/api/motion'].includes(req.url) && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            commands.push({url: req.url, body});
+            const fields = new URLSearchParams(body);
+            if (req.url === '/api/name') state.name = fields.get('name');
+            if (req.url === '/api/sound' && fields.has('command')) state.sound.muted = !state.sound.muted;
+            if (req.url === '/api/sound' && fields.has('sensitivity')) state.sound.sensitivity = Number(fields.get('sensitivity'));
+            if (req.url === '/api/motion') state.motion.sensitivity = Number(fields.get('sensitivity'));
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ok: true}));
+        });
+        return;
     }
     const match = req.url.match(/^\/pet\/(\w+)\.png$/);
     if (req.url === '/room/forest-mobile.jpg' || req.url === '/room/forest-wide.jpg') {
@@ -51,8 +71,14 @@ const server = http.createServer((req, res) => {
     try {
         const page = await browser.newPage({viewport: {width: 390, height: 844}, deviceScaleFactor: 1});
         const errors = [];
+        const requests = [];
+        page.on('request', request => requests.push(request.url()));
         page.on('pageerror', error => errors.push(error.message));
         await page.goto('http://127.0.0.1:' + server.address().port);
+        await page.evaluate(() => document.fonts.ready);
+        assert(await page.evaluate(() => document.fonts.check('400 15px "Nunito Sans"')));
+        assert(await page.evaluate(() => [...document.fonts].some(font => font.family === 'Nunito Sans' && font.status === 'loaded')));
+        assert.match(await page.locator('body').evaluate(element => getComputedStyle(element).fontFamily), /Nunito Sans/);
         for (const pose of poses) {
             state.pose = pose;
             state.sleeping = pose === 'sleeping';
@@ -74,6 +100,35 @@ const server = http.createServer((req, res) => {
             assert(await page.locator('#' + panel).isVisible());
         }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        await page.locator('#newName').fill('Nova');
+        await page.locator('.settings .primary').click();
+        await page.waitForFunction(() => document.getElementById('name').textContent === 'Nova');
+        assert(commands.some(command => command.url === '/api/name' && command.body === 'name=Nova'));
+        state.name = 'Pip';
+        await page.locator('[data-panel="care"]').click();
+        for (const action of ['feed', 'play', 'clean', 'sleep', 'pet']) {
+            await Promise.all([
+                page.waitForResponse(response => response.url().endsWith('/api/action') && response.request().postData() === 'action=' + action),
+                page.locator('.action[onclick="act(\'' + action + '\')"]').click()
+            ]);
+            assert(commands.some(command => command.url === '/api/action' && command.body === 'action=' + action));
+        }
+        await page.locator('[data-panel="sensors"]').click();
+        await page.locator('#muteButton').click();
+        await page.waitForFunction(() => document.getElementById('muteButton').textContent === 'Unmute');
+        await page.locator('#muteButton').click();
+        await page.waitForFunction(() => document.getElementById('muteButton').textContent === 'Mute');
+        await page.locator('#sensitivity').selectOption('2');
+        await page.waitForFunction(() => document.getElementById('sensitivity').value === '2');
+        assert(commands.some(command => command.url === '/api/sound' && command.body === 'sensitivity=2'));
+        await Promise.all([
+            page.waitForResponse(response => response.url().endsWith('/api/motion')),
+            page.locator('#motionSensitivity').selectOption('1')
+        ]);
+        assert(commands.some(command => command.url === '/api/motion' && command.body === 'sensitivity=1'));
+        state.sound.sensitivity = 1; state.motion.sensitivity = 2;
+        await page.locator('[data-panel="home"]').click();
+        await page.evaluate(() => refresh());
         await page.locator('#colorButton').click();
         assert(await page.locator('#themePicker').isVisible());
         const gradients = await page.locator('.stat .fill').evaluateAll(elements =>
@@ -109,6 +164,11 @@ const server = http.createServer((req, res) => {
             assert.deepEqual(await page.locator('.stat .fill').evaluateAll(elements =>
                 elements.map(element => getComputedStyle(element).backgroundImage)), gradients);
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+            for (const panel of ['care', 'sensors', 'home']) {
+                await page.locator('[data-panel="' + panel + '"]').click();
+                assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+            }
+            assert.equal(await page.locator('.stat .icon').count(), 5);
         }
         assert.equal(new Set(themeBackgrounds).size, 6);
         assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light');
@@ -122,6 +182,13 @@ const server = http.createServer((req, res) => {
         }
         await page.setViewportSize({width: 320, height: 740});
         await checkMoodLayout();
+        state.name = 'LongPalName12';
+        await page.evaluate(() => refresh());
+        const nameBox = await page.locator('#name').boundingBox();
+        const ageBox = await page.locator('#age').boundingBox();
+        assert(nameBox.x + nameBox.width <= ageBox.x);
+        state.name = 'Pip';
+        await page.evaluate(() => refresh());
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         const brandBox = await page.locator('.brand').boundingBox();
         const onlineBox = await page.locator('.online').boundingBox();
@@ -158,7 +225,17 @@ const server = http.createServer((req, res) => {
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         await page.screenshot({path: path.join(output, 'webui-desktop-preview.png')});
         assert.deepEqual(errors, []);
-        console.log('PASS: six poses, navigation, six themes, exact theme colors, themed surface gradients, readable light-theme text, distinct stat gradients, saved-state reload, save-failure recovery, 320/390px mobile widths, and JavaScript.');
+        assert(requests.some(url => url.endsWith('/fonts/nunito-sans-v1.woff2')));
+        assert(requests.every(url => url.startsWith('http://127.0.0.1:')));
+        const fallback = await browser.newPage({viewport: {width: 320, height: 740}, reducedMotion: 'reduce'});
+        await fallback.route('**/fonts/**', route => route.abort());
+        await fallback.goto('http://127.0.0.1:' + server.address().port);
+        await fallback.waitForFunction(() => document.querySelectorAll('.stat').length === 5);
+        assert.equal(await fallback.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        const animation = await fallback.locator('#pet').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
+        assert(animation <= .001);
+        await fallback.close();
+        console.log('PASS: offline font/icons, care/rename/sensor commands, six poses, six themes, centered mood, exact theme/stat colors, saved-state and failure recovery, 320/390px widths, long names, font fallback, reduced motion, and JavaScript.');
     } finally {
         await browser.close();
         server.close();
