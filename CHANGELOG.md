@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.2
+
+- Added Soft White as the sixth saved WebUI theme, keeping Deep Forest Teal as default.
+- Added subtle light gradients, dark readable text, teal controls, and softer shadows for the white theme.
+- Kept all five dark themes, forest artwork, and stat bar gradients unchanged.
+
 ## v0.6.1
 
 - Added richer light-to-dark page, header, card, and button gradients across all five WebUI themes.

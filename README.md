@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.6.1.** The forest WebUI has five gradient color themes, and both displays share five color-coded care stats.
+> **Early development — v0.6.2.** The forest WebUI has six gradient color themes, and both displays share five color-coded care stats.
 
 ## First milestone
 
@@ -57,10 +57,12 @@ background is served directly from firmware; source and conversion instructions
 are in [assets/room](assets/room/README.md).
 
 Use **Color** beside **Rename** at the bottom of Home to choose Deep Forest Teal
-(the default), Purple, Dark Pine, Deep Navy, or Warm Charcoal. The choice is saved
+(the default), Purple, Dark Pine, Deep Navy, Warm Charcoal, or Soft White. The choice is saved
 on PocketPal, survives a restart, and is shared by connected browsers.
 Each theme uses a richer colored top fading to a dark page background, with
 matching gradients on the header, cards, and buttons.
+Soft White instead uses light surfaces, dark text, softer shadows, and teal
+controls. The existing dark themes and stat bar colors are unchanged.
 
 Fullness is coral, Happiness pink, Energy gold, Cleanliness aqua, and Health
 green. These stat gradients stay consistent across themes and match the five

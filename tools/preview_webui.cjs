@@ -19,7 +19,7 @@ const server = http.createServer((req, res) => {
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
             const theme = new URLSearchParams(body).get('theme');
-            const valid = ['teal', 'purple', 'pine', 'navy', 'charcoal'].includes(theme);
+            const valid = ['teal', 'purple', 'pine', 'navy', 'charcoal', 'white'].includes(theme);
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = failThemeSave ? 500 : (valid ? 200 : 400);
             if (!failThemeSave && valid) state.theme = theme;
@@ -80,7 +80,7 @@ const server = http.createServer((req, res) => {
             elements.map(element => getComputedStyle(element).backgroundImage));
         assert.equal(new Set(gradients).size, 5);
         const colors = [['teal', '#163D3A'], ['purple', '#513c77'], ['pine', '#1E352D'],
-                        ['navy', '#172A3A'], ['charcoal', '#292A2D']];
+                        ['navy', '#172A3A'], ['charcoal', '#292A2D'], ['white', '#ffffff']];
         const themeBackgrounds = [];
         for (const [theme, base] of colors) {
             await page.locator('[data-theme-choice="' + theme + '"]').click();
@@ -97,7 +97,16 @@ const server = http.createServer((req, res) => {
                 elements.map(element => getComputedStyle(element).backgroundImage)), gradients);
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         }
-        assert.equal(new Set(themeBackgrounds).size, 5);
+        assert.equal(new Set(themeBackgrounds).size, 6);
+        assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light');
+        for (const selector of ['.stat b', '.settings input', '.controls select', '.secondary', '.action']) {
+            assert.equal(await page.locator(selector).first().evaluate(element => getComputedStyle(element).color), 'rgb(32, 60, 51)');
+        }
+        for (const selector of ['.stat label span', '.settings input::placeholder']) {
+            const placeholder = selector.includes('::placeholder');
+            assert.equal(await page.locator(placeholder ? '.settings input' : selector).first()
+                .evaluate((element, pseudo) => getComputedStyle(element, pseudo).color, placeholder ? '::placeholder' : null), 'rgb(80, 101, 92)');
+        }
         await page.setViewportSize({width: 320, height: 740});
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         const brandBox = await page.locator('.brand').boundingBox();
@@ -105,18 +114,27 @@ const server = http.createServer((req, res) => {
         assert(brandBox.x + brandBox.width <= onlineBox.x);
         await page.setViewportSize({width: 390, height: 844});
         await page.reload();
-        await page.waitForFunction(() => document.documentElement.dataset.theme === 'charcoal');
+        await page.waitForFunction(() => document.documentElement.dataset.theme === 'white');
         assert(await page.locator('#themePicker').isHidden());
         failThemeSave = true;
         await page.locator('#colorButton').click();
         await page.locator('[data-theme-choice="purple"]').click();
         await page.waitForFunction(() => !savingTheme);
-        assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'charcoal');
+        assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'white');
         assert.match(await page.locator('#colorMessage').textContent(), /Could not save/);
         failThemeSave = false;
+        const output = path.join(root, 'assets/dragon');
+        await page.locator('#colorButton').click();
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({path: path.join(output, 'webui-white-preview.png'), fullPage: true});
+        for (const panel of ['care', 'sensors']) {
+            await page.locator('[data-panel="' + panel + '"]').click();
+            await page.screenshot({path: path.join(output, 'webui-white-' + panel + '-preview.png'), fullPage: true});
+        }
+        await page.locator('[data-panel="home"]').click();
+        await page.locator('#colorButton').click();
         await page.locator('[data-theme-choice="teal"]').click();
         await page.waitForFunction(() => !savingTheme);
-        const output = path.join(root, 'assets/dragon');
         await page.locator('#home').screenshot({path: path.join(output, 'theme-picker-preview.png')});
         await page.locator('#colorButton').click();
         await page.screenshot({path: path.join(output, 'webui-mobile-preview.png'), fullPage: true});
@@ -125,7 +143,7 @@ const server = http.createServer((req, res) => {
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         await page.screenshot({path: path.join(output, 'webui-desktop-preview.png')});
         assert.deepEqual(errors, []);
-        console.log('PASS: six poses, navigation, five themes, exact theme colors, themed surface gradients, distinct stat gradients, saved-state reload, save-failure recovery, 320/390px mobile widths, and JavaScript.');
+        console.log('PASS: six poses, navigation, six themes, exact theme colors, themed surface gradients, readable light-theme text, distinct stat gradients, saved-state reload, save-failure recovery, 320/390px mobile widths, and JavaScript.');
     } finally {
         await browser.close();
         server.close();
