@@ -81,6 +81,7 @@ const server = http.createServer((req, res) => {
         assert.equal(new Set(gradients).size, 5);
         const colors = [['teal', '#163D3A'], ['purple', '#513c77'], ['pine', '#1E352D'],
                         ['navy', '#172A3A'], ['charcoal', '#292A2D']];
+        const themeBackgrounds = [];
         for (const [theme, base] of colors) {
             await page.locator('[data-theme-choice="' + theme + '"]').click();
             await page.waitForFunction(() => !savingTheme);
@@ -88,10 +89,21 @@ const server = http.createServer((req, res) => {
             assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), theme);
             assert.equal((await page.evaluate(() => getComputedStyle(document.documentElement)
                 .getPropertyValue('--base'))).trim().toLowerCase(), base.toLowerCase());
+            const backgrounds = await page.locator('body, .topbar, .tabs, .tab.active, .card, .primary, .secondary, .action, .sensor, .theme-choice').evaluateAll(elements =>
+                elements.map(element => getComputedStyle(element).backgroundImage));
+            for (const background of backgrounds) assert.match(background, /linear-gradient/);
+            themeBackgrounds.push(backgrounds[0]);
             assert.deepEqual(await page.locator('.stat .fill').evaluateAll(elements =>
                 elements.map(element => getComputedStyle(element).backgroundImage)), gradients);
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         }
+        assert.equal(new Set(themeBackgrounds).size, 5);
+        await page.setViewportSize({width: 320, height: 740});
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        const brandBox = await page.locator('.brand').boundingBox();
+        const onlineBox = await page.locator('.online').boundingBox();
+        assert(brandBox.x + brandBox.width <= onlineBox.x);
+        await page.setViewportSize({width: 390, height: 844});
         await page.reload();
         await page.waitForFunction(() => document.documentElement.dataset.theme === 'charcoal');
         assert(await page.locator('#themePicker').isHidden());
@@ -113,7 +125,7 @@ const server = http.createServer((req, res) => {
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         await page.screenshot({path: path.join(output, 'webui-desktop-preview.png')});
         assert.deepEqual(errors, []);
-        console.log('PASS: six poses, navigation, five themes, exact theme colors, distinct gradients, saved-state reload, save-failure recovery, mobile width, and JavaScript.');
+        console.log('PASS: six poses, navigation, five themes, exact theme colors, themed surface gradients, distinct stat gradients, saved-state reload, save-failure recovery, 320/390px mobile widths, and JavaScript.');
     } finally {
         await browser.close();
         server.close();

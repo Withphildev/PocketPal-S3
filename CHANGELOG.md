@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.1
+
+- Added richer light-to-dark page, header, card, and button gradients across all five WebUI themes.
+- Kept the forest artwork, saved theme selection, and shared stat colors unchanged.
+
 ## v0.6.0
 
 - Added a Color button beside Rename with five selectable WebUI themes.
