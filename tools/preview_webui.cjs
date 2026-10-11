@@ -18,6 +18,11 @@ const server = http.createServer((req, res) => {
         return res.end(JSON.stringify(state));
     }
     const match = req.url.match(/^\/pet\/(\w+)\.png$/);
+    if (req.url === '/room/forest-mobile.jpg' || req.url === '/room/forest-wide.jpg') {
+        res.setHeader('Content-Type', 'image/jpeg');
+        return res.end(fs.readFileSync(path.join(root, 'assets/room',
+            req.url.includes('mobile') ? 'forestMobile.jpg' : 'forestWide.jpg')));
+    }
     if (match && poses.includes(match[1])) {
         res.setHeader('Content-Type', 'image/png');
         return res.end(fs.readFileSync(path.join(root, 'assets/dragon/web', match[1] + '.png')));

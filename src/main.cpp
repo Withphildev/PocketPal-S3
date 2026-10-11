@@ -9,7 +9,7 @@
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.5.0";
+constexpr char kVersion[] = "v0.5.1";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 90;

@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.5.0.** The original chibi dragon now appears on both displays. Physical-device testing of artwork and reaction timing is next.
+> **Early development — v0.5.1.** The original chibi dragon appears on both displays, with an illustrated forest clearing in the WebUI.
 
 ## First milestone
 
@@ -50,6 +50,11 @@ The responsive WebUI is organized into three sections:
 - **Sensors:** live sound and motion meters, sensitivity settings, microphone mute, and privacy status.
 
 The interface is bundled inside the firmware with no external fonts, scripts, images, or internet dependencies.
+
+The dragon's WebUI setting is an illustrated forest clearing. Phone and desktop
+layouts use separate crops to keep the waterfall and open grass visible. The
+background is served directly from firmware; source and conversion instructions
+are in [assets/room](assets/room/README.md).
 
 ## Dragon artwork
 

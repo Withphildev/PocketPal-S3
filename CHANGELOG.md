@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.1
+
+- Replaced the WebUI indoor room with the owner's illustrated forest clearing.
+- Added separate portrait and landscape background crops for phone and desktop.
+- Replaced the rug with a soft ground shadow beneath the dragon.
+- Embedded optimized JPEG backgrounds in firmware and preserved the source artwork.
+
 ## v0.5.0
 
 - Replaced the placeholder pet with the owner's original chibi dragon artwork on the StickS3 and WebUI.
