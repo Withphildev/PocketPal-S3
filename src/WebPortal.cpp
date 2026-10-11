@@ -4,6 +4,7 @@
 
 #include "FontAssets.h"
 #include "PetAssets.h"
+#include "PropAssets.h"
 #include "RoomAssets.h"
 #include "PetVisual.h"
 
@@ -64,9 +65,10 @@ main{padding:24px 20px 36px}.topbar{padding:14px 16px;margin-bottom:16px}.brand{
 :root[data-theme="white"] .action .icon{color:var(--accent)}:root[data-theme="white"] .action:hover,:root[data-theme="white"] .action:hover small{color:var(--ink)}:root[data-theme="white"] .stat label .icon{color:var(--accent)}
 @media(max-width:620px){main{padding:14px 12px 28px}.topbar{padding:12px;margin-bottom:14px}.brand{gap:10px}.brand h1{font-size:20px}.brand small{font-size:11px}.card{padding:20px}.tabs{position:static;margin:16px 0}.action{min-height:128px}.room{border-radius:24px}.bubble{font-size:13px}.sensor{padding:18px}}
 @media(max-width:360px){.brand h1{font-size:18px}.brand small{font-size:10px}.logo{width:36px;height:36px}.topbar{padding:10px}.tab{font-size:13px;gap:5px}.tab .icon{width:17px;height:17px}.card{padding:16px}.stats{padding:0 12px}.theme-choice{padding:8px;gap:7px;font-size:11px}.swatch{width:18px;height:18px}}
+.care-layer{position:absolute;inset:0;pointer-events:none;overflow:visible}.care-prop{position:absolute;height:auto;object-fit:contain;filter:drop-shadow(0 3px 3px #0002)}.care-blanket{position:absolute;left:12%;top:58%;width:76%;height:auto;pointer-events:none}.care-blanket[hidden]{display:none}
 </style></head><body><svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></symbol><symbol id="icon-heart" viewBox="0 0 24 24"><path d="M20 5c-3-3-6-1-8 1-2-2-5-4-8-1-4 4 0 9 8 15 8-6 12-11 8-15Z"/></symbol><symbol id="icon-sparkle" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></symbol><symbol id="icon-sensors" viewBox="0 0 24 24"><path d="M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12"/><circle cx="5" cy="9" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="19" cy="7" r="2"/></symbol><symbol id="icon-berry" viewBox="0 0 24 24"><path d="M7 8c-6 1-3 9 5 13 8-4 11-12 5-13"/><path d="m7 5 5 3 5-3M12 8V3"/><path d="M8 12h.1M12 15h.1M16 12h.1M12 19h.1"/></symbol><symbol id="icon-bolt" viewBox="0 0 24 24"><path d="m14 2-10 12h7l-1 8 10-12h-7Z"/></symbol><symbol id="icon-drop" viewBox="0 0 24 24"><path d="M12 3c-2 3-7 7-7 12a7 7 0 0 0 14 0c0-5-5-9-7-12Z"/><path d="M8 15a4 4 0 0 0 4 4"/></symbol><symbol id="icon-health" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6Z"/></symbol><symbol id="icon-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m12 7 5 4-2 6H9l-2-6Z" fill="currentColor" fill-opacity=".12"/><path d="M12 7V2m5 9 4.5-2M15 17l3 3M9 17l-3 3m1-9L2.5 9"/></symbol><symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20 14a9 9 0 0 1-10-11 9 9 0 1 0 10 11Z"/></symbol><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-4 0h8"/></symbol><symbol id="icon-motion" viewBox="0 0 24 24"><path d="m12 3 9 9-9 9-9-9Z"/><path d="m8 12 4-4 4 4m-4-4v8"/></symbol><symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 2-2c0-1-1-2-1-3s1-2 3-2h2a2 2 0 0 0 2-2 9 9 0 0 0-9-9Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="15" cy="7" r=".8"/></symbol><symbol id="icon-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></symbol></defs></svg><main>
 <header class="topbar"><div class="brand"><div class="logo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-heart"/></svg></div><div><h1>PocketPal S3</h1><small>Your tiny offline companion</small></div></div><div class="online"><span class="dot"></span><span>Local &amp; live</span></div></header>
-<section class="room" aria-label="PocketPal forest clearing"><div id="bubble" class="bubble" aria-live="polite">Waking up…</div><div class="ground-shadow"></div><div id="pet" class="pet"><img id="dragon" class="dragon" src="/pet/idle.png" alt="Mint-green PocketPal dragon" width="240" height="240"></div><div class="room-meta"><span id="soundChip" class="chip">Mic · calibrating</span><span id="motionChip" class="chip">Motion · calibrating</span></div></section>
+<section class="room" aria-label="PocketPal forest clearing"><div id="bubble" class="bubble" aria-live="polite">Waking up…</div><div class="ground-shadow"></div><div id="pet" class="pet"><img id="dragon" class="dragon" src="/pet/idle.png" alt="Mint-green PocketPal dragon" width="240" height="240"><img id="careBlanket" class="care-blanket" src="/props/blanket.png" alt="" aria-hidden="true" hidden><div id="careLayer" class="care-layer" aria-hidden="true"></div></div><div class="room-meta"><span id="soundChip" class="chip">Mic · calibrating</span><span id="motionChip" class="chip">Motion · calibrating</span></div></section>
 <nav class="tabs" aria-label="PocketPal sections"><button class="tab active" data-panel="home" onclick="showPanel('home')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-home"/></svg>Home</button><button class="tab" data-panel="care" onclick="showPanel('care')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-heart"/></svg>Care</button><button class="tab" data-panel="settings" onclick="showPanel('settings')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-sensors"/></svg>Settings</button></nav>
 <section id="home" class="panel active"><div class="card"><div class="identity"><h2 id="name">Pip</h2><div id="age" class="age">Age 0m</div></div><div id="mood" class="mood">Content</div><div id="stats" class="stats"></div></div></section>
 <section id="care" class="panel"><div class="card"><div class="section-title"><div><h2>Care time</h2><p>Every little action shapes your pal’s day.</p></div></div><div class="actions"><button class="action" onclick="act('feed')"><span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-berry"/></svg></span><b>Feed</b><small>Restore fullness</small></button><button class="action" onclick="act('play')"><span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-ball"/></svg></span><b>Play</b><small>Build happiness</small></button><button class="action" onclick="act('clean')"><span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-drop"/></svg></span><b>Clean</b><small>Fresh and sparkly</small></button><button class="action" onclick="act('sleep')"><span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-moon"/></svg></span><b>Sleep</b><small>Rest or wake up</small></button><button class="action" onclick="act('pet')"><span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-heart"/></svg></span><b>Pet</b><small>Share affection</small></button></div></div></section>
@@ -84,13 +86,88 @@ async function setTheme(theme){if(savingTheme)return;const previous=document.doc
 function showPanel(id){document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.panel===id))}
 function prettyAge(minutes){if(minutes<60)return'Age '+minutes+'m';const hours=Math.floor(minutes/60);return hours<48?'Age '+hours+'h':'Age '+Math.floor(hours/24)+'d'}
 async function post(url,body){return fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body})}
-async function refresh(){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error();const s=await r.json();if(!savingTheme)applyTheme(s.theme);byId('name').textContent=s.name;byId('mood').textContent=s.mood;byId('age').textContent=prettyAge(s.ageMinutes);byId('bubble').textContent=s.sleeping?s.message:(motionMessages[s.motion.state]||soundMessages[s.sound.level]||s.message);const p=byId('pet');let petClass='pet '+s.pose;const dragon=byId('dragon'),image='/pet/'+s.pose+'.png';if(dragon.getAttribute('src')!==image)dragon.src=image;if(!['still','calibrating','unavailable'].includes(s.motion.state))petClass+=' motion-'+s.motion.state;if(p.className!==petClass)p.className=petClass;byId('stats').innerHTML=Object.entries(labels).map(([k,v])=>`<div class="stat" data-stat="${k}"><label><span>${icon(v[0])}${v[1]}</span><b>${s[k]}%</b></label><div class="track"><div class="fill" style="width:${s[k]}%"></div></div></div>`).join('');const soundLabel=s.sound.muted?'muted':s.sound.level;byId('soundState').textContent=soundLabel;byId('soundChip').textContent='Mic · '+soundLabel;byId('soundFill').style.width=s.sound.meter+'%';byId('muteButton').textContent=s.sound.muted?'Unmute':'Mute';byId('sensitivity').value=String(s.sound.sensitivity);const motionLabel=s.motion.state.replace('tilt-','');byId('motionState').textContent=motionLabel;byId('motionChip').textContent='Motion · '+motionLabel;byId('motionFill').style.width=s.motion.meter+'%';byId('motionSensitivity').value=String(s.motion.sensitivity)}catch(e){byId('bubble').textContent='Looking for PocketPal…';byId('soundChip').textContent='Mic · offline';byId('motionChip').textContent='Motion · offline'}}
-async function act(a){await post('/api/action','action='+encodeURIComponent(a));await refresh()}
+async function refresh(){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error();const s=await r.json();if(!savingTheme)applyTheme(s.theme);syncCare(s);byId('name').textContent=s.name;byId('mood').textContent=s.mood;byId('age').textContent=prettyAge(s.ageMinutes);byId('bubble').textContent=s.sleeping?s.message:(motionMessages[s.motion.state]||soundMessages[s.sound.level]||s.message);const p=byId('pet');let petClass='pet '+s.pose;const dragon=byId('dragon'),image='/pet/'+s.pose+'.png';if(dragon.getAttribute('src')!==image)dragon.src=image;if(!['still','calibrating','unavailable'].includes(s.motion.state))petClass+=' motion-'+s.motion.state;if(p.className!==petClass)p.className=petClass;byId('stats').innerHTML=Object.entries(labels).map(([k,v])=>`<div class="stat" data-stat="${k}"><label><span>${icon(v[0])}${v[1]}</span><b>${s[k]}%</b></label><div class="track"><div class="fill" style="width:${s[k]}%"></div></div></div>`).join('');const soundLabel=s.sound.muted?'muted':s.sound.level;byId('soundState').textContent=soundLabel;byId('soundChip').textContent='Mic · '+soundLabel;byId('soundFill').style.width=s.sound.meter+'%';byId('muteButton').textContent=s.sound.muted?'Unmute':'Mute';byId('sensitivity').value=String(s.sound.sensitivity);const motionLabel=s.motion.state.replace('tilt-','');byId('motionState').textContent=motionLabel;byId('motionChip').textContent='Motion · '+motionLabel;byId('motionFill').style.width=s.motion.meter+'%';byId('motionSensitivity').value=String(s.motion.sensitivity)}catch(e){byId('bubble').textContent='Looking for PocketPal…';byId('soundChip').textContent='Mic · offline';byId('motionChip').textContent='Motion · offline'}}
+async function act(a){try{const r=await post('/api/action','action='+encodeURIComponent(a));if(!r.ok){byId('bubble').textContent='Pip cannot do that right now.';return}await refresh()}catch(e){byId('bubble').textContent='Could not reach PocketPal.'}}
 async function renamePet(e){e.preventDefault();const input=byId('newName'),v=input.value.trim();if(!v)return;await post('/api/name','name='+encodeURIComponent(v));input.value='';await refresh()}
 async function setSound(command){await post('/api/sound','command='+encodeURIComponent(command));await refresh()}
 async function setSensitivity(value){await post('/api/sound','sensitivity='+encodeURIComponent(value));await refresh()}
 async function setMotionSensitivity(value){await post('/api/motion','sensitivity='+encodeURIComponent(value));await refresh()}
 ['idle','happy','listening','excited','sleeping','surprised'].forEach(pose=>{const img=new Image();img.src='/pet/'+pose+'.png'});
+['strawberry','ball','water','soap','bubble','blanket','hand'].forEach(name=>{const img=new Image();img.src='/props/'+name+'.png'});
+// BEGIN CARE ANIMATION
+// Included in the firmware page by tools/build_care_script.py.
+// New care events replace old overlays; polling never restarts an animation.
+let careId = null;
+let careAnimations = [];
+function clearCare() {
+    careAnimations.forEach(animation => animation.cancel());
+    careAnimations = [];
+    byId('careLayer').replaceChildren();
+}
+function syncCare(state) {
+    const care = state.care;
+    byId('careBlanket').hidden = !state.sleeping && care?.effect !== 'wake';
+    if (!care) return;
+    if (care.effect === 'none') { clearCare(); careId = care.id; return; }
+    if (care.id === careId) return;
+    clearCare();
+    careId = care.id;
+    const elapsed = Math.max(0, care.elapsed);
+    const duration = care.duration;
+    if (elapsed >= duration) return;
+    const u = byId('pet').clientWidth / 200;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function prop(name, left, top, width, frames, delay = 0) {
+        const image = document.createElement('img');
+        image.className = 'care-prop';
+        image.dataset.prop = name;
+        image.src = '/props/' + name + '.png';
+        image.alt = '';
+        Object.assign(image.style, {left:left+'%', top:top+'%', width:width+'%'});
+        byId('careLayer').append(image);
+        const animation = image.animate(reduced ? [{opacity:.7},{opacity:0}] : frames,
+            {duration:reduced ? 200 : duration, delay:reduced ? 0 : delay, fill:'both', easing:'linear'});
+        animation.currentTime = reduced ? 0 : elapsed;
+        careAnimations.push(animation);
+        animation.finished.then(() => image.remove()).catch(() => {});
+    }
+    const frame = (x,y,scale=1,opacity=1,rotate=0) => ({
+        transform:`translate(${x*u}px,${y*u}px) rotate(${rotate}deg) scale(${scale})`, opacity
+    });
+    if (care.effect === 'feed') {
+        prop('strawberry',-14,44,22,[frame(0,0,1,0),frame(15,-12),
+            {...frame(106,0,.9),offset:.65},frame(116,0,.15,0)]);
+    } else if (care.effect === 'play') {
+        prop('ball',72,73,24,[frame(0,-35,1,0),frame(-12,0,1,1,35),
+            frame(-45,-45,1,1,90),frame(-70,0,1,1,145),frame(-105,-35,1,1,210),
+            frame(-80,0,1,1,280),frame(-60,-15,.9,0,340)]);
+    } else if (care.effect === 'clean') {
+        prop('soap',-12,66,25,[frame(0,0,1,0),frame(20,-12),frame(25,-7),frame(0,0,1,0)]);
+        prop('water',78,12,14,[frame(0,-20,1,0),frame(-10,15),frame(-20,70,.6,.6),frame(-20,90,.2,0)]);
+        [0,1,2,3].forEach(i=>prop('bubble',12+i*22,72-i*3,10+i*2,
+            [frame(0,0,.5,0),frame(i%2?10:-10,-20,1,.55),
+             frame(i%2?-8:8,-80,1,.5),frame(0,-120,.7,0)],i*120));
+    } else if (care.effect === 'pet') {
+        // Entrance, exactly three down/up pats, then exit.
+        prop('hand',44,-18,66,[{...frame(0,-35,1,0),offset:0},
+            {...frame(0,0),offset:.125},
+            {...frame(0,12),offset:.25},{...frame(0,0),offset:.375},
+            {...frame(0,12),offset:.5},{...frame(0,0),offset:.625},
+            {...frame(0,12),offset:.75},{...frame(0,0),offset:.875},
+            {...frame(0,-35,1,0),offset:1}]);
+    } else if (care.effect === 'sleep' || care.effect === 'wake') {
+        const blanket = byId('careBlanket');
+        const sleeping = care.effect === 'sleep';
+        blanket.hidden = false;
+        const animation = blanket.animate(reduced ? [{opacity:1},{opacity:1}] :
+            (sleeping ? [frame(0,-15,1,0),frame(0,0)] : [frame(0,0),frame(15,-20,1,0)]),
+            {duration:reduced ? 1 : duration, fill:'none', easing:'ease-out'});
+        animation.currentTime = reduced ? 0 : elapsed;
+        careAnimations.push(animation);
+        animation.finished.then(()=>{if(careId===care.id)blanket.hidden=!sleeping}).catch(()=>{});
+    }
+}
+// END CARE ANIMATION
 refresh();setInterval(refresh,500);
 </script></body></html>
 )HTML";
@@ -141,12 +218,17 @@ String WebPortal::jsonEscape(const String &value) {
 
 void WebPortal::sendState() {
     const PetSnapshot s = pet_.snapshot();
+    const CareSnapshot care = pet_.careSnapshot();
     const SoundSnapshot sound = sound_.snapshot();
     const MotionSnapshot motion = motion_.snapshot();
     String json;
     json.reserve(640);
     json += "{\"name\":\"" + jsonEscape(s.name) + "\"";
     json += ",\"theme\":\"" + theme_ + "\"";
+    json += ",\"care\":{\"id\":" + String(care.id);
+    json += ",\"effect\":\"" + String(PetEngine::careName(care.effect)) + "\"";
+    json += ",\"elapsed\":" + String(care.elapsed);
+    json += ",\"duration\":" + String(care.duration) + "}";
     json += ",\"fullness\":" + String(s.fullness);
     json += ",\"happiness\":" + String(s.happiness);
     json += ",\"energy\":" + String(s.energy);
@@ -235,6 +317,14 @@ void WebPortal::handleTheme() {
 }
 
 void WebPortal::configureRoutes() {
+    for (uint8_t index = 0; index < 7; ++index) {
+        const String path = String("/props/") + PropAssets::names[index] + ".png";
+        server_.on(path.c_str(), HTTP_GET, [this, index]() {
+            const PetImage &image = PropAssets::web[index];
+            server_.sendHeader("Cache-Control", "no-cache");
+            server_.send_P(200, "image/png", reinterpret_cast<const char *>(image.data), image.size);
+        });
+    }
     server_.on("/fonts/nunito-sans-v1.woff2", HTTP_GET, [this]() {
         server_.sendHeader("Cache-Control", "public, max-age=31536000, immutable");
         server_.send_P(200, "font/woff2", reinterpret_cast<const char *>(FontAssets::nunitoSans),

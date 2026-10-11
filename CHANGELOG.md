@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.8.1
+
+- Added the supplied Nova-and-Pip splash at 240x135 for 2.5 seconds before the existing connection flow.
+- Removed the automatic 600 ms full-screen redraw and idle bobbing on StickS3.
+- Redraw visible data when it changes; keep pet-only motion/reaction updates at 900 ms and slow care effects from 80 to 120 ms.
+- Retained live browser/button changes, sensor sampling, saved sleep/blanket state, and WebUI animations.
+- Added native refresh-scheduler checks for idle, data changes, movement, care cleanup, and millis rollover.
+
+## v0.8.0
+
+- Added seven supplied care props on the WebUI and StickS3: strawberry, soccer ball, soap, water, bubbles, blanket, and hand.
+- Kept Pip's existing expressions and movement; Pet adds exactly three gentle pats.
+- Added transient device-originated care events, with elapsed timing, replacement, expiry, and no polling replay.
+- Kept the blanket visible while sleeping, including after reconnect or reboot.
+- Added reduced-motion browser behavior and buffered device pet-region updates during effects.
+- Preserved original transparent artwork and added reproducible WebUI/device conversion scripts.
+- Extended browser QA for every effect, sleep/wake, three pats, late joins, rejected actions, and expiry.
+- Rejected low-energy Play no longer wakes a sleeping pet.
+
 ## v0.7.2
 
 - Replaced the Care Play media triangle with a matching line-style soccer ball.

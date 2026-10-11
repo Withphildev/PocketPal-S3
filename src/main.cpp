@@ -1,20 +1,25 @@
 #include <Arduino.h>
 #include <M5Unified.h>
+#include <algorithm>
+#include <cmath>
 
 #include "MotionSensor.h"
+#include "DisplayRefresh.h"
 #include "PetEngine.h"
 #include "PetAssets.h"
+#include "PropAssets.h"
 #include "PetVisual.h"
 #include "SoundSensor.h"
 #include "StatIcons.h"
+#include "SplashAssets.h"
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.7.2";
+constexpr char kVersion[] = "v0.8.1";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 90;
-constexpr uint32_t kFrameMs = 600;
+constexpr uint32_t kSplashMs = 2500;
 
 PetEngine pet;
 SoundSensor sound;
@@ -22,13 +27,19 @@ MotionSensor motion;
 WebPortal portal(pet, sound, motion);
 size_t selectedAction = 0;
 uint32_t frameNumber = 0;
-uint32_t lastFrameAt = 0;
+uint32_t splashStartedAt = 0;
+uint32_t lastDisplayCheckAt = 0;
+DisplayRefresh displayRefresh;
+PetSnapshot lastDisplayedPet{};
+uint8_t lastDisplayedClients = 0;
+M5Canvas petCanvas(&M5.Display);
+bool petCanvasReady = false;
 SoundLevel lastDrawnSoundLevel = SoundLevel::Unavailable;
 MotionState lastDrawnMotionState = MotionState::Unavailable;
 
-enum class Screen : uint8_t { ConnectionInfo, WifiQr, PetHome };
+enum class Screen : uint8_t { Splash, ConnectionInfo, WifiQr, PetHome };
 enum class FaceGesture : uint8_t { None, Single, Double };
-Screen screen = Screen::ConnectionInfo;
+Screen screen = Screen::Splash;
 
 const char *kActionNames[] = {"FEED", "PLAY", "CLEAN", "SLEEP", "PET", "MIC"};
 const PetAction kActions[] = {PetAction::Feed, PetAction::Play, PetAction::Clean, PetAction::Sleep, PetAction::Pet};
@@ -108,7 +119,10 @@ void drawStat(int x, int y, const char *label, uint8_t icon, uint8_t value, uint
 
 void drawPet(const PetSnapshot &s, SoundLevel soundLevel, MotionState motionState) {
     const PetPose pose = selectPetPose(s, soundLevel, motionState);
-    int bob = s.sleeping ? 0 : (frameNumber % 4 < 2 ? 0 : 2);
+    const bool animated = !s.sleeping && (s.celebrating ||
+        soundLevel == SoundLevel::Low || soundLevel == SoundLevel::Medium || soundLevel == SoundLevel::High ||
+        motionState >= MotionState::TiltLeft);
+    int bob = animated ? (frameNumber % 4 < 2 ? 0 : 2) : 0;
     if (pose == PetPose::Excited) bob -= (frameNumber % 2) * 4;
     if (pose == PetPose::Surprised) bob -= (frameNumber % 2) * 6;
     int motionX = 0;
@@ -119,12 +133,66 @@ void drawPet(const PetSnapshot &s, SoundLevel soundLevel, MotionState motionStat
     if (motionState == MotionState::TiltForward) bob += 2;
     else if (motionState == MotionState::TiltBack) bob -= 2;
     const PetImage &image = PetAssets::device[static_cast<uint8_t>(pose)];
-    M5.Display.drawPng(image.data, image.size, 16 + motionX, 20 + bob);
+    if (!petCanvasReady) {
+        M5.Display.fillRect(4, 18, 100, 82, TFT_BLACK);
+        M5.Display.drawPng(image.data, image.size, 16 + motionX, 20 + bob);
+        return;
+    }
+    petCanvas.fillSprite(TFT_BLACK);
+    petCanvas.drawPng(image.data, image.size, 12 + motionX, 2 + bob);
+    const CareSnapshot care = pet.careSnapshot();
+    auto drawProp = [&](uint8_t index, int x, int y) {
+        const PetImage &prop = PropAssets::device[index];
+        petCanvas.drawPng(prop.data, prop.size, x, y);
+    };
+    if (s.sleeping) {
+        const int settling = care.effect == CareEffect::Sleep ? static_cast<int>((1.f - float(care.elapsed) / care.duration) * 10) : 0;
+        drawProp(5, 20 + motionX, 47 + bob - settling);
+    }
+    const float t = care.duration ? std::min(1.f, float(care.elapsed) / care.duration) : 1.f;
+    switch (care.effect) {
+        case CareEffect::Feed:
+            if (t < .84f) drawProp(0, -8 + int(t * 68), 35 + bob - int(sinf(t * 3.14159f) * 5));
+            break;
+        case CareEffect::Play:
+            drawProp(1, 72 - int(t * 56), 56 - int(fabsf(sinf(t * 3.f * 3.14159f)) * 25));
+            break;
+        case CareEffect::Clean:
+            drawProp(3, 0, 54 - int(sinf(t * 3.14159f) * 5));
+            if (t < .75f) drawProp(2, 76 - int(t * 12), 5 + int(t * 35));
+            for (int i = 0; i < 3; ++i) {
+                const float progress = fmodf(t + i * .22f, 1.f);
+                drawProp(4, 17 + i * 26 + int(sinf(progress * 6.28f) * 3), 65 - int(progress * 64));
+            }
+            break;
+        case CareEffect::Pet: {
+            // Three complete gentle pats between a 450ms entrance and exit.
+            int y;
+            if (care.elapsed < 450) y = -26 + int(care.elapsed * 28 / 450);
+            else if (care.elapsed > 3150) y = 2 - int((care.elapsed - 3150) * 28 / 450);
+            else {
+                const float phase = float(care.elapsed - 450) / 2700;
+                const float tap = sinf(phase * 3.f * 3.14159f);
+                y = 2 + int(tap * tap * 8);
+            }
+            drawProp(6, 42 + motionX, y + bob);
+            break;
+        }
+        case CareEffect::Wake:
+            if (t < .7f) drawProp(5, 20 + int(t * 15), 47 - int(t * 20));
+            break;
+        default: break;
+    }
+    petCanvas.pushSprite(4, 18);
 }
 void drawMainScreen() {
     const PetSnapshot s = pet.snapshot();
     const SoundSnapshot audio = sound.snapshot();
     const MotionSnapshot movement = motion.snapshot();
+    lastDisplayedPet = s;
+    lastDisplayedClients = portal.connectedClients();
+    lastDrawnSoundLevel = audio.level;
+    lastDrawnMotionState = movement.state;
     M5.Display.fillScreen(TFT_BLACK);
     M5.Display.fillRect(0, 0, 240, 17, 0x2104);
     M5.Display.setTextColor(TFT_WHITE, 0x2104);
@@ -244,7 +312,8 @@ void drawWifiQr() {
 }
 
 void drawActiveScreen() {
-    if (screen == Screen::ConnectionInfo) drawConnectionInfo();
+    if (screen == Screen::Splash) M5.Display.drawJpg(SplashAssets::image, sizeof(SplashAssets::image), 0, 0);
+    else if (screen == Screen::ConnectionInfo) drawConnectionInfo();
     else if (screen == Screen::WifiQr) drawWifiQr();
     else drawMainScreen();
 }
@@ -270,6 +339,8 @@ void setup() {
     M5.begin(config);
     M5.Display.setRotation(3);
     M5.Display.setBrightness(kBrightness);
+    petCanvas.setColorDepth(16);
+    petCanvasReady = petCanvas.createSprite(100, 82) != nullptr;
     M5.Power.setExtOutput(false);
     pinMode(kSelectPin, INPUT_PULLUP);
     pinMode(kNextPin, INPUT_PULLUP);
@@ -277,7 +348,8 @@ void setup() {
     sound.begin();
     motion.begin();
     portal.begin();
-    drawConnectionInfo();
+    drawActiveScreen();
+    splashStartedAt = millis();
 }
 
 void loop() {
@@ -287,6 +359,14 @@ void loop() {
     pet.tick(now);
     sound.tick(now);
     motion.tick(now);
+    if (screen == Screen::Splash) {
+        if (now - splashStartedAt >= kSplashMs) {
+            screen = Screen::ConnectionInfo;
+            drawActiveScreen();
+        }
+        delay(2);
+        return;
+    }
     bool redraw = false;
 
     if (motion.consumeShake()) {
@@ -302,23 +382,29 @@ void loop() {
         redraw = true;
     }
 
-    if (sound.level() != lastDrawnSoundLevel) {
-        lastDrawnSoundLevel = sound.level();
-        redraw = true;
-    }
-    if (motion.state() != lastDrawnMotionState) {
-        lastDrawnMotionState = motion.state();
-        redraw = true;
-    }
-
     const FaceGesture gesture = pollFaceGesture(now);
     if (gesture == FaceGesture::Double) goBack();
     else if (gesture == FaceGesture::Single) goForwardOrAct();
 
-    if (screen == Screen::PetHome && (redraw || now - lastFrameAt >= kFrameMs)) {
-        ++frameNumber;
-        drawMainScreen();
-        lastFrameAt = now;
+    if (screen == Screen::PetHome && (redraw || now - lastDisplayCheckAt >= 40)) {
+        lastDisplayCheckAt = now;
+        const PetSnapshot s = pet.snapshot();
+        const SoundLevel audio = sound.level();
+        const MotionState movement = motion.state();
+        // Include all visible values so WebUI commands and need decay still redraw.
+        const bool changed = redraw || s.name != lastDisplayedPet.name || s.mood != lastDisplayedPet.mood ||
+            s.fullness != lastDisplayedPet.fullness || s.happiness != lastDisplayedPet.happiness ||
+            s.energy != lastDisplayedPet.energy || s.cleanliness != lastDisplayedPet.cleanliness ||
+            s.health != lastDisplayedPet.health || s.sleeping != lastDisplayedPet.sleeping ||
+            s.celebrating != lastDisplayedPet.celebrating || audio != lastDrawnSoundLevel ||
+            movement != lastDrawnMotionState || portal.connectedClients() != lastDisplayedClients;
+        const bool moving = !s.sleeping && (s.celebrating || movement >= MotionState::TiltLeft ||
+            audio == SoundLevel::Low || audio == SoundLevel::Medium || audio == SoundLevel::High);
+        const bool care = pet.careSnapshot().effect != CareEffect::None;
+        const auto update = displayRefresh.step(now, changed, moving, care);
+        if (update != DisplayRefresh::Update::None) ++frameNumber;
+        if (update == DisplayRefresh::Update::Full) drawMainScreen();
+        else if (update == DisplayRefresh::Update::Pet) drawPet(s, audio, movement);
     }
     delay(2);
 }

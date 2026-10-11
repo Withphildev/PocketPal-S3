@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.7.2.** The forest WebUI has offline typography, matching line icons, and six gradient color themes. Both displays share five color-coded care stats.
+> **Early development — v0.8.1.** A 2.5-second Nova-and-Pip startup splash and event-driven StickS3 redraws accompany the floating care props. The forest WebUI has offline typography, matching line icons, and six gradient color themes.
 
 ## First milestone
 
@@ -31,7 +31,8 @@ PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5
 
 ## WebUI
 
-At startup, PocketPal opens a three-screen flow:
+At startup, PocketPal shows the supplied Nova-and-Pip splash for 2.5 seconds,
+then opens the existing three-screen flow:
 
 1. Read the unique `PocketPal-XXXX` Wi-Fi name, password, and WebUI address.
 2. Press the blue Face button and scan the standard Wi-Fi QR code to join from a phone.
@@ -85,6 +86,32 @@ Browser artwork is served from firmware at 240 pixels; the StickS3 uses
 80-pixel images. Originals, converted images, a preview, and regeneration
 instructions are in [assets/dragon](assets/dragon/README.md).
 
+## Care props
+
+Successful care actions add floating artwork without replacing Pip's existing poses or motion:
+
+- Feed: a strawberry floats toward Pip.
+- Play: a soccer ball bounces by his feet.
+- Clean: soap, a water droplet, and rising bubbles.
+- Sleep: a blanket settles over his lower body and stays while he sleeps; waking removes it.
+- Pet: a hand gives exactly three gentle pats, then leaves.
+
+All seven props are embedded in firmware, with no internet requests. Effects
+also follow physical-button and motion-triggered care. New actions replace
+previous effects; browser polling does not restart them. A browser joining
+mid-effect starts at its current elapsed time. Temporary effects are not saved
+or replayed after reboot, but the blanket follows the saved sleep state.
+The WebUI respects reduced-motion preferences. The StickS3 leaves the idle
+image still, with no periodic full-screen redraws. Visible data changes
+(buttons, browser commands, care stats, sound/motion category, or connected
+client count) redraw the interface. Movement and sound reactions update just
+the pet region every 900 ms; care effects use 120 ms updates and clear once
+when finished. This changes application redraws, not the LCD hardware scan
+rate. Sensor sampling and browser animations are unchanged.
+
+Sources and regeneration instructions: [assets/props](assets/props/README.md).
+Splash artwork and conversion: [assets/splash](assets/splash/README.md).
+
 ## Sound Reactions and privacy
 
 PocketPal samples short microphone windows and immediately reduces each one to a single loudness measurement. The reusable sample buffer is never written to flash, exposed through an API, sent to the WebUI, or retained as a recording.
@@ -115,6 +142,24 @@ The supported orientation is landscape with the blue Face button on the left. Mo
 - M5Stack StickS3
 
 PocketPal S3 has not been validated on the M5StickC family, Cardputer, or other ESP32 boards.
+
+## Install a release
+
+Download the `.factory.bin` from this repository's GitHub Releases. Use an
+ESP32-S3-compatible flashing tool configured for the M5StickS3 and write the
+combined image at **0x0000** (not 0x10000). It includes the bootloader,
+partition table, and application; an internet connection is not needed to run
+PocketPal afterward.
+
+Avoid an optional full-flash erase when updating if you want to retain Pip's
+save and settings. Erasing flash clears the NVS save. This is an early-development
+release tested only for the StickS3; other M5 devices are not supported.
+
+At boot, the splash lasts 2.5 seconds. Follow the displayed Wi-Fi connection
+details and Face-button prompts. A single Face press advances/performs the
+selected action; two presses go back. The M5 button selects an action in the
+pet screen. The WebUI is available at `http://pocketpal` after joining the
+device's Wi-Fi.
 
 ## Build
 

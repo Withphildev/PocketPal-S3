@@ -53,11 +53,11 @@ bool PetEngine::apply(PetAction action) {
             message_ = "That was delicious!";
             break;
         case PetAction::Play:
-            sleeping_ = false;
             if (energy_ < 8) {
                 message_ = "Too sleepy to play.";
                 return false;
             }
+            sleeping_ = false;
             happiness_ = clampStat(happiness_ + 22);
             energy_ = clampStat(energy_ - 10);
             fullness_ = clampStat(fullness_ - 4);
@@ -81,6 +81,9 @@ bool PetEngine::apply(PetAction action) {
     updateHealth();
     dirty_ = true;
     celebrateUntil_ = action == PetAction::Play ? millis() + 2500 : 0;
+    startCare(action == PetAction::Sleep
+                  ? (sleeping_ ? CareEffect::Sleep : CareEffect::Wake)
+                  : static_cast<CareEffect>(static_cast<uint8_t>(action) + 1));
     save();
     return true;
 }
@@ -109,6 +112,7 @@ bool PetEngine::setName(String name) {
 }
 
 void PetEngine::setSleeping(bool sleeping, const String &message) {
+    if (sleeping_ != sleeping) startCare(sleeping ? CareEffect::Sleep : CareEffect::Wake);
     sleeping_ = sleeping;
     message_ = message;
     updateHealth();
@@ -137,6 +141,26 @@ String PetEngine::mood() const {
 PetSnapshot PetEngine::snapshot() const {
     const bool celebrating = celebrateUntil_ != 0 && static_cast<int32_t>(celebrateUntil_ - millis()) > 0;
     return {name_, fullness_, happiness_, energy_, cleanliness_, health_, ageMinutes_, sleeping_, celebrating, mood(), message_};
+}
+
+void PetEngine::startCare(CareEffect effect) {
+    careEffect_ = effect;
+    ++careId_;
+    careStarted_ = millis();
+    careDuration_ = effect == CareEffect::Feed ? 2400 :
+                    effect == CareEffect::Sleep ? 1200 :
+                    effect == CareEffect::Wake ? 900 : 3600;
+}
+
+CareSnapshot PetEngine::careSnapshot() const {
+    const uint32_t elapsed = millis() - careStarted_;
+    const bool active = careId_ != 0 && elapsed < careDuration_;
+    return {active ? careEffect_ : CareEffect::None, careId_, elapsed, careDuration_};
+}
+
+const char *PetEngine::careName(CareEffect effect) {
+    static const char *const names[] = {"none", "feed", "play", "clean", "sleep", "pet", "wake"};
+    return names[static_cast<uint8_t>(effect)];
 }
 
 void PetEngine::save() {

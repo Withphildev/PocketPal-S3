@@ -13,6 +13,18 @@ const state = {name: 'Pip', theme: 'teal', mood: 'joyful', fullness: 82, happine
     message: 'Welcome back, Pip!', sound: {level: 'quiet', meter: 0, sensitivity: 1, muted: false},
     motion: {state: 'still', meter: 0, sensitivity: 2}};
 let failThemeSave = false;
+let failAction = false;
+let careStarted = 0;
+state.care = {id:0, effect:'none', elapsed:0, duration:0};
+function startCare(action) {
+    if (action === 'sleep') state.sleeping = !state.sleeping;
+    else if (action !== 'clean') state.sleeping = false;
+    state.pose = state.sleeping ? 'sleeping' : action==='play' ? 'excited' : 'happy';
+    const effect = action === 'sleep' ? (state.sleeping ? 'sleep' : 'wake') : action;
+    state.care = {id:state.care.id+1, effect, elapsed:0,
+        duration:effect==='feed'?2400:effect==='sleep'?1200:effect==='wake'?900:3600};
+    careStarted = Date.now();
+}
 const commands = [];
 const server = http.createServer((req, res) => {
     if (req.url === '/fonts/nunito-sans-v1.woff2') {
@@ -33,6 +45,8 @@ const server = http.createServer((req, res) => {
         return;
     }
     if (req.url === '/api/state') {
+        state.care.elapsed = Date.now() - careStarted;
+        if (state.care.elapsed >= state.care.duration) state.care.effect = 'none';
         res.setHeader('Content-Type', 'application/json');
         return res.end(JSON.stringify(state));
     }
@@ -42,6 +56,10 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             commands.push({url: req.url, body});
             const fields = new URLSearchParams(body);
+            if (req.url === '/api/action') {
+                if (failAction) { res.statusCode=400; return res.end(JSON.stringify({ok:false})); }
+                startCare(fields.get('action'));
+            }
             if (req.url === '/api/name') state.name = fields.get('name');
             if (req.url === '/api/sound' && fields.has('command')) state.sound.muted = !state.sound.muted;
             if (req.url === '/api/sound' && fields.has('sensitivity')) state.sound.sensitivity = Number(fields.get('sensitivity'));
@@ -52,6 +70,11 @@ const server = http.createServer((req, res) => {
         return;
     }
     const match = req.url.match(/^\/pet\/(\w+)\.png$/);
+    const propMatch = req.url.match(/^\/props\/(\w+)\.png$/);
+    if (propMatch && ['strawberry','ball','water','soap','bubble','blanket','hand'].includes(propMatch[1])) {
+        res.setHeader('Content-Type', 'image/png');
+        return res.end(fs.readFileSync(path.join(root, 'assets/props/web', propMatch[1]+'.png')));
+    }
     if (req.url === '/room/forest-mobile.jpg' || req.url === '/room/forest-wide.jpg') {
         res.setHeader('Content-Type', 'image/jpeg');
         return res.end(fs.readFileSync(path.join(root, 'assets/room',
@@ -117,6 +140,57 @@ const server = http.createServer((req, res) => {
             ]);
             assert(commands.some(command => command.url === '/api/action' && command.body === 'action=' + action));
         }
+        // Test the actual embedded animation code with device-originated events.
+        const script = fs.readFileSync(path.join(root,'src/CareAnimation.js'),'utf8').trim();
+        assert(html.includes(script));
+        const propsOutput = path.join(root,'assets/props');
+        for (const [action,time] of [['feed',1000],['play',1200],['clean',1500],['pet',900],['sleep',1100]]) {
+            startCare(action); careStarted=Date.now()-time;
+            await page.evaluate(() => refresh());
+            await page.waitForFunction(() => [...document.querySelectorAll('#careLayer img, #careBlanket')].every(img=>img.complete&&img.naturalWidth>0));
+            // Pause deterministically without affecting the application's event tracking.
+            await page.evaluate(time=>careAnimations.forEach(a=>{a.pause();a.currentTime=time;}),time);
+            if(action==='pet') assert.equal(await page.evaluate(()=>careAnimations[0].effect.getKeyframes().filter(f=>f.offset===.25||f.offset===.5||f.offset===.75).length),3);
+            assert(await page.evaluate(()=>careAnimations.length>0));
+            await page.locator('.room').screenshot({path:path.join(propsOutput,action+'-preview.png')});
+            const firstHandle = await page.evaluateHandle(()=>careAnimations[0]);
+            await page.evaluate(()=>refresh());
+            assert(await page.evaluate(first=>careAnimations[0]===first,firstHandle));
+            await firstHandle.dispose();
+        }
+        careStarted=Date.now()-2000;
+        await page.evaluate(()=>refresh());
+        assert(await page.locator('#careBlanket').isVisible());
+        startCare('sleep');
+        await page.evaluate(()=>refresh());
+        assert.equal(state.care.effect,'wake');
+        careStarted=Date.now()-1000;
+        await page.evaluate(()=>refresh());
+        assert(await page.locator('#careBlanket').isHidden());
+        const previousId=state.care.id;
+        failAction=true;
+        await page.evaluate(()=>act('play'));
+        assert.equal(state.care.id,previousId);
+        assert.equal(await page.locator('#careLayer img').count(),0);
+        failAction=false;
+        startCare('feed'); careStarted=Date.now()-900;
+        const joined = await browser.newPage({viewport:{width:390,height:844}});
+        await joined.goto('http://127.0.0.1:'+server.address().port);
+        await joined.waitForFunction(()=>document.querySelector('[data-prop="strawberry"]'));
+        assert(await joined.evaluate(()=>careAnimations[0].currentTime>=900));
+        careStarted=Date.now()-2500;
+        await joined.evaluate(()=>refresh());
+        assert.equal(await joined.locator('#careLayer img').count(),0);
+        await joined.reload();
+        await joined.waitForFunction(()=>careId!==null);
+        assert.equal(await joined.locator('#careLayer img').count(),0);
+        await joined.close();
+        await page.emulateMedia({reducedMotion:'reduce'});
+        startCare('pet'); await page.evaluate(()=>refresh());
+        assert.equal(await page.evaluate(()=>careAnimations[0].effect.getTiming().duration),200);
+        await page.emulateMedia({reducedMotion:'no-preference'});
+        state.care.effect='none';careStarted=0;state.sleeping=false;
+        await page.evaluate(()=>refresh());
         await page.locator('[data-panel="settings"]').click();
         await page.locator('#muteButton').click();
         await page.waitForFunction(() => document.getElementById('muteButton').textContent === 'Unmute');
@@ -283,7 +357,7 @@ const server = http.createServer((req, res) => {
         const animation = await fallback.locator('#pet').evaluate(element => parseFloat(getComputedStyle(element).animationDuration));
         assert(animation <= .001);
         await fallback.close();
-        console.log('PASS: offline font/icons, care/rename/sensor commands, six poses, six themes, centered mood, exact theme/stat colors, saved-state and failure recovery, 320/390px widths, long names, font fallback, reduced motion, and JavaScript.');
+        console.log('PASS: care props, exactly three pats, polling continuity, sleep/wake blanket, late-join timing, expired event cleanup, rejected actions, reduced-motion props; offline font/icons, all panels/commands, six poses/themes, responsive layout, saved-state/failure recovery, and JavaScript.');
     } finally {
         await browser.close();
         server.close();

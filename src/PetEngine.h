@@ -4,6 +4,13 @@
 #include <Preferences.h>
 
 enum class PetAction : uint8_t { Feed, Play, Clean, Sleep, Pet };
+enum class CareEffect : uint8_t { None, Feed, Play, Clean, Sleep, Pet, Wake };
+struct CareSnapshot {
+    CareEffect effect;
+    uint32_t id;
+    uint32_t elapsed;
+    uint32_t duration;
+};
 
 struct PetSnapshot {
     String name;
@@ -28,6 +35,8 @@ class PetEngine {
     bool setName(String name);
     void setSleeping(bool sleeping, const String &message);
     PetSnapshot snapshot() const;
+    CareSnapshot careSnapshot() const;
+    static const char *careName(CareEffect effect);
     void save();
 
   private:
@@ -48,9 +57,14 @@ class PetEngine {
     uint32_t lastAgeTick_ = 0;
     uint32_t lastSave_ = 0;
     uint32_t celebrateUntil_ = 0;
+    CareEffect careEffect_ = CareEffect::None;
+    uint32_t careId_ = 0;
+    uint32_t careStarted_ = 0;
+    uint32_t careDuration_ = 0;
     String message_ = "A new friendship begins!";
 
     static uint8_t clampStat(int value);
     void updateHealth();
     String mood() const;
+    void startCare(CareEffect effect);
 };
