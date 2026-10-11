@@ -8,11 +8,25 @@ const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'src/WebPortal.cpp'), 'utf8').match(/R"HTML\(([\s\S]*?)\)HTML"/)[1];
 const poses = ['idle', 'happy', 'listening', 'excited', 'sleeping', 'surprised'];
-const state = {name: 'Pip', mood: 'joyful', fullness: 82, happiness: 86, energy: 78,
+const state = {name: 'Pip', theme: 'teal', mood: 'joyful', fullness: 82, happiness: 86, energy: 78,
     cleanliness: 90, health: 100, ageMinutes: 12, sleeping: false, pose: 'happy',
     message: 'Welcome back, Pip!', sound: {level: 'quiet', meter: 0, sensitivity: 1, muted: false},
     motion: {state: 'still', meter: 0, sensitivity: 2}};
+let failThemeSave = false;
 const server = http.createServer((req, res) => {
+    if (req.url === '/api/theme' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const theme = new URLSearchParams(body).get('theme');
+            const valid = ['teal', 'purple', 'pine', 'navy', 'charcoal'].includes(theme);
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = failThemeSave ? 500 : (valid ? 200 : 400);
+            if (!failThemeSave && valid) state.theme = theme;
+            res.end(JSON.stringify({ok: res.statusCode === 200}));
+        });
+        return;
+    }
     if (req.url === '/api/state') {
         res.setHeader('Content-Type', 'application/json');
         return res.end(JSON.stringify(state));
@@ -60,13 +74,46 @@ const server = http.createServer((req, res) => {
             assert(await page.locator('#' + panel).isVisible());
         }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        await page.locator('#colorButton').click();
+        assert(await page.locator('#themePicker').isVisible());
+        const gradients = await page.locator('.stat .fill').evaluateAll(elements =>
+            elements.map(element => getComputedStyle(element).backgroundImage));
+        assert.equal(new Set(gradients).size, 5);
+        const colors = [['teal', '#163D3A'], ['purple', '#513c77'], ['pine', '#1E352D'],
+                        ['navy', '#172A3A'], ['charcoal', '#292A2D']];
+        for (const [theme, base] of colors) {
+            await page.locator('[data-theme-choice="' + theme + '"]').click();
+            await page.waitForFunction(() => !savingTheme);
+            assert.equal(state.theme, theme);
+            assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), theme);
+            assert.equal((await page.evaluate(() => getComputedStyle(document.documentElement)
+                .getPropertyValue('--base'))).trim().toLowerCase(), base.toLowerCase());
+            assert.deepEqual(await page.locator('.stat .fill').evaluateAll(elements =>
+                elements.map(element => getComputedStyle(element).backgroundImage)), gradients);
+            assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        }
+        await page.reload();
+        await page.waitForFunction(() => document.documentElement.dataset.theme === 'charcoal');
+        assert(await page.locator('#themePicker').isHidden());
+        failThemeSave = true;
+        await page.locator('#colorButton').click();
+        await page.locator('[data-theme-choice="purple"]').click();
+        await page.waitForFunction(() => !savingTheme);
+        assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'charcoal');
+        assert.match(await page.locator('#colorMessage').textContent(), /Could not save/);
+        failThemeSave = false;
+        await page.locator('[data-theme-choice="teal"]').click();
+        await page.waitForFunction(() => !savingTheme);
         const output = path.join(root, 'assets/dragon');
+        await page.locator('#home').screenshot({path: path.join(output, 'theme-picker-preview.png')});
+        await page.locator('#colorButton').click();
         await page.screenshot({path: path.join(output, 'webui-mobile-preview.png'), fullPage: true});
         await page.setViewportSize({width: 1100, height: 900});
+        await page.evaluate(() => window.scrollTo(0, 0));
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         await page.screenshot({path: path.join(output, 'webui-desktop-preview.png')});
         assert.deepEqual(errors, []);
-        console.log('PASS: all six PNGs decoded, room bounds, navigation, mobile width, and JavaScript.');
+        console.log('PASS: six poses, navigation, five themes, exact theme colors, distinct gradients, saved-state reload, save-failure recovery, mobile width, and JavaScript.');
     } finally {
         await browser.close();
         server.close();

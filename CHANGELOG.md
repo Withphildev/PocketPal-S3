@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.6.0
+
+- Added a Color button beside Rename with five selectable WebUI themes.
+- Made Deep Forest Teal (#163D3A) the default; added Purple, Dark Pine, Deep Navy, and Warm Charcoal.
+- Persisted the selected theme in device NVS and synchronized it through the state API.
+- Added instant color preview, save feedback, and recovery if a color change cannot be saved.
+- Applied distinct coral, pink, gold, aqua, and green stat gradients across every WebUI theme.
+- Matched stat gradients on the StickS3 and added Health as the fifth device bar.
+
 ## v0.5.1
 
 - Replaced the WebUI indoor room with the owner's illustrated forest clearing.

@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.5.1.** The original chibi dragon appears on both displays, with an illustrated forest clearing in the WebUI.
+> **Early development — v0.6.0.** The forest WebUI now has selectable color themes, and both displays share five color-coded care stats.
 
 ## First milestone
 
@@ -55,6 +55,14 @@ The dragon's WebUI setting is an illustrated forest clearing. Phone and desktop
 layouts use separate crops to keep the waterfall and open grass visible. The
 background is served directly from firmware; source and conversion instructions
 are in [assets/room](assets/room/README.md).
+
+Use **Color** beside **Rename** at the bottom of Home to choose Deep Forest Teal
+(the default), Purple, Dark Pine, Deep Navy, or Warm Charcoal. The choice is saved
+on PocketPal, survives a restart, and is shared by connected browsers.
+
+Fullness is coral, Happiness pink, Energy gold, Cleanliness aqua, and Health
+green. These stat gradients stay consistent across themes and match the five
+bars on the StickS3. Its Health bar is labeled `+`.
 
 ## Dragon artwork
 

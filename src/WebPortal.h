@@ -3,6 +3,7 @@
 #include <DNSServer.h>
 #include <WebServer.h>
 #include <WiFi.h>
+#include <Preferences.h>
 
 #include "PetEngine.h"
 #include "MotionSensor.h"
@@ -25,6 +26,8 @@ class WebPortal {
     DNSServer dns_;
     String ssid_;
     String password_;
+    Preferences preferences_;
+    String theme_ = "teal";
 
     void configureRoutes();
     void sendState();
@@ -32,5 +35,7 @@ class WebPortal {
     void handleName();
     void handleSound();
     void handleMotion();
+    void handleTheme();
+    static bool validTheme(const String &theme);
     static String jsonEscape(const String &value);
 };
