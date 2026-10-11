@@ -109,6 +109,7 @@ const server = http.createServer((req, res) => {
         assert(commands.some(command => command.url === '/api/name' && command.body === 'name=Nova'));
         state.name = 'Pip';
         await page.locator('[data-panel="care"]').click();
+        assert.equal(await page.locator('.action[onclick="act(\'play\')"] use').getAttribute('href'), '#icon-ball');
         for (const action of ['feed', 'play', 'clean', 'sleep', 'pet']) {
             await Promise.all([
                 page.waitForResponse(response => response.url().endsWith('/api/action') && response.request().postData() === 'action=' + action),
@@ -150,7 +151,9 @@ const server = http.createServer((req, res) => {
                 size: parseFloat(getComputedStyle(element).fontSize)
             }));
             assert.equal(style.alignment, 'center');
-            assert.equal(style.size, 20);
+            assert.equal(style.size, 28);
+            assert.equal(style.size, await page.locator('#name').evaluate(element => parseFloat(getComputedStyle(element).fontSize)));
+            assert.equal(await page.locator('#age').evaluate(element => parseFloat(getComputedStyle(element).fontSize)), 14);
         }
         for (const [theme, base] of colors) {
             await page.locator('[data-panel="settings"]').click();

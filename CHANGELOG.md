@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.2
+
+- Replaced the Care Play media triangle with a matching line-style soccer ball.
+- Enlarged the centered WebUI mood to match the 28px pet name and increased Age to 14px.
+- Capitalized the first letter of the StickS3 mood display without changing internal state values.
+
 ## v0.7.1
 
 - Renamed Sensors to Settings and moved Rename and the always-visible Color picker above Reactions.

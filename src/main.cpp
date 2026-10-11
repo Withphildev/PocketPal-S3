@@ -10,7 +10,7 @@
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.7.1";
+constexpr char kVersion[] = "v0.7.2";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 90;
@@ -151,7 +151,11 @@ void drawMainScreen() {
     M5.Display.setTextSize(1);
     M5.Display.setTextColor(moodColor(s.mood), TFT_BLACK);
     M5.Display.setCursor(112, 41);
-    M5.Display.print(s.mood);
+    String displayMood = s.mood;
+    if (displayMood.length() && displayMood[0] >= 'a' && displayMood[0] <= 'z') {
+        displayMood.setCharAt(0, displayMood[0] - 'a' + 'A');
+    }
+    M5.Display.print(displayMood);
 
     drawStat(112, 50, "F", 0, s.fullness, 0xFF6B6B, 0xFF9A76);
     drawStat(112, 60, "H", 1, s.happiness, 0xFF70A6, 0xFF9EC4);
