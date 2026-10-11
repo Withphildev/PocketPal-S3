@@ -95,11 +95,14 @@ const server = http.createServer((req, res) => {
         const room = await page.locator('.room').boundingBox();
         assert(dragon.x >= room.x && dragon.x + dragon.width <= room.x + room.width);
         assert(dragon.y >= room.y && dragon.y + dragon.height <= room.y + room.height);
-        for (const panel of ['care', 'sensors', 'home']) {
+        for (const panel of ['care', 'settings', 'home']) {
             await page.locator('[data-panel="' + panel + '"]').click();
             assert(await page.locator('#' + panel).isVisible());
         }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        await page.locator('[data-panel="settings"]').click();
+        assert.equal(await page.locator('#settings h3').allTextContents().then(text => text.join(',')), 'Rename,Color,Reactions');
+        assert.equal(await page.locator('#home .settings, #home .theme-picker').count(), 0);
         await page.locator('#newName').fill('Nova');
         await page.locator('.settings .primary').click();
         await page.waitForFunction(() => document.getElementById('name').textContent === 'Nova');
@@ -113,7 +116,7 @@ const server = http.createServer((req, res) => {
             ]);
             assert(commands.some(command => command.url === '/api/action' && command.body === 'action=' + action));
         }
-        await page.locator('[data-panel="sensors"]').click();
+        await page.locator('[data-panel="settings"]').click();
         await page.locator('#muteButton').click();
         await page.waitForFunction(() => document.getElementById('muteButton').textContent === 'Unmute');
         await page.locator('#muteButton').click();
@@ -129,7 +132,7 @@ const server = http.createServer((req, res) => {
         state.sound.sensitivity = 1; state.motion.sensitivity = 2;
         await page.locator('[data-panel="home"]').click();
         await page.evaluate(() => refresh());
-        await page.locator('#colorButton').click();
+        await page.locator('[data-panel="settings"]').click();
         assert(await page.locator('#themePicker').isVisible());
         const gradients = await page.locator('.stat .fill').evaluateAll(elements =>
             elements.map(element => getComputedStyle(element).backgroundImage));
@@ -150,6 +153,7 @@ const server = http.createServer((req, res) => {
             assert.equal(style.size, 20);
         }
         for (const [theme, base] of colors) {
+            await page.locator('[data-panel="settings"]').click();
             await page.locator('[data-theme-choice="' + theme + '"]').click();
             await page.waitForFunction(() => !savingTheme);
             assert.equal(state.theme, theme);
@@ -160,11 +164,12 @@ const server = http.createServer((req, res) => {
                 elements.map(element => getComputedStyle(element).backgroundImage));
             for (const background of backgrounds) assert.match(background, /linear-gradient/);
             themeBackgrounds.push(backgrounds[0]);
+            await page.locator('[data-panel="home"]').click();
             await checkMoodLayout();
             assert.deepEqual(await page.locator('.stat .fill').evaluateAll(elements =>
                 elements.map(element => getComputedStyle(element).backgroundImage)), gradients);
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-            for (const panel of ['care', 'sensors', 'home']) {
+            for (const panel of ['care', 'settings', 'home']) {
                 await page.locator('[data-panel="' + panel + '"]').click();
                 assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
             }
@@ -197,27 +202,32 @@ const server = http.createServer((req, res) => {
         await page.reload();
         await page.waitForFunction(() => document.documentElement.dataset.theme === 'white');
         assert(await page.locator('#themePicker').isHidden());
+        await page.locator('[data-panel="settings"]').click();
+        assert(await page.locator('#themePicker').isVisible());
         failThemeSave = true;
-        await page.locator('#colorButton').click();
+        await page.locator('[data-panel="settings"]').click();
         await page.locator('[data-theme-choice="purple"]').click();
         await page.waitForFunction(() => !savingTheme);
         assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'white');
         assert.match(await page.locator('#colorMessage').textContent(), /Could not save/);
         failThemeSave = false;
+        await page.locator('[data-theme-choice="white"]').click();
+        await page.waitForFunction(() => !savingTheme);
+        assert.match(await page.locator('#colorMessage').textContent(), /Color saved/);
         const output = path.join(root, 'assets/dragon');
-        await page.locator('#colorButton').click();
+        await page.locator('[data-panel="home"]').click();
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({path: path.join(output, 'webui-white-preview.png'), fullPage: true});
-        for (const panel of ['care', 'sensors']) {
+        for (const panel of ['care', 'settings']) {
             await page.locator('[data-panel="' + panel + '"]').click();
             await page.screenshot({path: path.join(output, 'webui-white-' + panel + '-preview.png'), fullPage: true});
         }
         await page.locator('[data-panel="home"]').click();
-        await page.locator('#colorButton').click();
+        await page.locator('[data-panel="settings"]').click();
         await page.locator('[data-theme-choice="teal"]').click();
         await page.waitForFunction(() => !savingTheme);
-        await page.locator('#home').screenshot({path: path.join(output, 'theme-picker-preview.png')});
-        await page.locator('#colorButton').click();
+        await page.locator('#settings').screenshot({path: path.join(output, 'theme-picker-preview.png')});
+        await page.locator('[data-panel="home"]').click();
         await page.screenshot({path: path.join(output, 'webui-mobile-preview.png'), fullPage: true});
         await page.setViewportSize({width: 1100, height: 900});
         await checkMoodLayout();
@@ -227,6 +237,41 @@ const server = http.createServer((req, res) => {
         assert.deepEqual(errors, []);
         assert(requests.some(url => url.endsWith('/fonts/nunito-sans-v1.woff2')));
         assert(requests.every(url => url.startsWith('http://127.0.0.1:')));
+        const iconSource = fs.readFileSync(path.join(root, 'src/StatIcons.h'), 'utf8');
+        const glyphs = [...iconSource.matchAll(/\{((?:0x[0-9a-f]+,?\s*)+)\}/g)]
+            .map(match => match[1].match(/0x[0-9a-f]+/g).map(value => parseInt(value, 16)));
+        assert.equal(glyphs.length, 5);
+        for (const glyph of glyphs) {
+            assert.equal(glyph.length, 9);
+            assert(glyph.every(row => row >= 0 && row < 512));
+        }
+        // Native pixel layout: 6px letter, gap, 9px icon, gap, original 65px bar.
+        assert(10 + 9 < 23);
+        assert(112 + 23 + 65 <= 240);
+        assert(90 + 9 < 101);
+        const iconPreview = await browser.newPage({viewport: {width: 400, height: 240}});
+        await iconPreview.setContent('<style>body{margin:0;background:#000}canvas{width:400px;height:240px;image-rendering:pixelated}</style><canvas width="100" height="60"></canvas>');
+        await iconPreview.evaluate(glyphs => {
+            const ctx = document.querySelector('canvas').getContext('2d');
+            const starts = ['#ff6b6b', '#ff70a6', '#f6c445', '#4fc3f7', '#55d98a'];
+            const ends = ['#ff9a76', '#ff9ec4', '#ffe47a', '#76e4e8', '#8be6a8'];
+            const labels = ['F', 'H', 'E', 'C', '+'];
+            ctx.font = '8px monospace'; ctx.textBaseline = 'top';
+            glyphs.forEach((glyph, index) => {
+                const y = 5 + index * 10;
+                ctx.fillStyle = '#ccc'; ctx.fillText(labels[index], 5, y);
+                ctx.fillStyle = starts[index];
+                glyph.forEach((row, dy) => {
+                    for (let dx = 0; dx < 9; dx++) if (row & (1 << (8 - dx))) ctx.fillRect(15 + dx, y + dy, 1, 1);
+                });
+                ctx.strokeStyle = '#555'; ctx.strokeRect(28.5, y + 1.5, 64, 6);
+                const gradient = ctx.createLinearGradient(30, 0, 81, 0);
+                gradient.addColorStop(0, starts[index]); gradient.addColorStop(1, ends[index]);
+                ctx.fillStyle = gradient; ctx.fillRect(30, y + 3, 51, 3);
+            });
+        }, glyphs);
+        await iconPreview.screenshot({path: path.join(output, 'device-stat-icons-preview.png')});
+        await iconPreview.close();
         const fallback = await browser.newPage({viewport: {width: 320, height: 740}, reducedMotion: 'reduce'});
         await fallback.route('**/fonts/**', route => route.abort());
         await fallback.goto('http://127.0.0.1:' + server.address().port);

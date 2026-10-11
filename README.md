@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.7.0.** The forest WebUI has offline typography, matching line icons, and six gradient color themes. Both displays share five color-coded care stats.
+> **Early development — v0.7.1.** The forest WebUI has offline typography, matching line icons, and six gradient color themes. Both displays share five color-coded care stats.
 
 ## First milestone
 
@@ -47,7 +47,7 @@ The responsive WebUI is organized into three sections:
 
 - **Home:** live room, pet identity, mood, age, and care stats.
 - **Care:** large touch-friendly controls for feeding, playing, cleaning, sleeping, and petting.
-- **Sensors:** live sound and motion meters, sensitivity settings, microphone mute, and privacy status.
+- **Settings:** Rename, Color, then Reactions (sound and motion meters, sensitivity, mute, and privacy).
 
 The interface is bundled inside the firmware with no external fonts, scripts, images, or internet dependencies.
 Nunito Sans is served locally from flash, with system-font fallback. A consistent
@@ -60,7 +60,7 @@ layouts use separate crops to keep the waterfall and open grass visible. The
 background is served directly from firmware; source and conversion instructions
 are in [assets/room](assets/room/README.md).
 
-Use **Color** beside **Rename** at the bottom of Home to choose Deep Forest Teal
+Open **Settings → Color** to choose Deep Forest Teal
 (the default), Purple, Dark Pine, Deep Navy, Warm Charcoal, or Soft White. The choice is saved
 on PocketPal, survives a restart, and is shared by connected browsers.
 Each theme uses a richer colored top fading to a dark page background, with
@@ -70,7 +70,8 @@ controls. The existing dark themes and stat bar colors are unchanged.
 
 Fullness is coral, Happiness pink, Energy gold, Cleanliness aqua, and Health
 green. These stat gradients stay consistent across themes and match the five
-bars on the StickS3. Its Health bar is labeled `+`.
+bars on the StickS3. Each device row has a matching small icon between its letter
+and bar; Health is labeled `+`.
 
 ## Dragon artwork
 

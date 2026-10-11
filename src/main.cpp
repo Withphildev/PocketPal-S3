@@ -6,10 +6,11 @@
 #include "PetAssets.h"
 #include "PetVisual.h"
 #include "SoundSensor.h"
+#include "StatIcons.h"
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.7.0";
+constexpr char kVersion[] = "v0.7.1";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 90;
@@ -78,12 +79,20 @@ uint16_t moodColor(const String &mood) {
     return TFT_CYAN;
 }
 
-void drawStat(int x, int y, const char *label, uint8_t value, uint32_t start, uint32_t end) {
+void drawStat(int x, int y, const char *label, uint8_t icon, uint8_t value, uint32_t start, uint32_t end) {
     M5.Display.setTextSize(1);
     M5.Display.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
     M5.Display.setCursor(x, y);
     M5.Display.print(label);
-    M5.Display.drawRoundRect(x + 18, y, 65, 7, 3, TFT_DARKGREY);
+    const uint16_t iconColor = M5.Display.color565((start >> 16) & 255, (start >> 8) & 255, start & 255);
+    for (int row = 0; row < StatIcons::kSize; ++row) {
+        for (int column = 0; column < StatIcons::kSize; ++column) {
+            if (StatIcons::kRows[icon][row] & (1u << (StatIcons::kSize - 1 - column))) {
+                M5.Display.drawPixel(x + 10 + column, y + row, iconColor);
+            }
+        }
+    }
+    M5.Display.drawRoundRect(x + 23, y + 1, 65, 7, 3, TFT_DARKGREY);
     const int width = (61 * value) / 100;
     for (int column = 0; column < width; ++column) {
         const int denominator = width > 1 ? width - 1 : 1;
@@ -93,7 +102,7 @@ void drawStat(int x, int y, const char *label, uint8_t value, uint32_t start, ui
             return a + (b - a) * column / denominator;
         };
         const uint16_t color = M5.Display.color565(channel(16), channel(8), channel(0));
-        M5.Display.drawFastVLine(x + 20 + column, y + 2, 3, color);
+        M5.Display.drawFastVLine(x + 25 + column, y + 3, 3, color);
     }
 }
 
@@ -144,11 +153,11 @@ void drawMainScreen() {
     M5.Display.setCursor(112, 41);
     M5.Display.print(s.mood);
 
-    drawStat(112, 50, "F", s.fullness, 0xFF6B6B, 0xFF9A76);
-    drawStat(112, 60, "H", s.happiness, 0xFF70A6, 0xFF9EC4);
-    drawStat(112, 70, "E", s.energy, 0xF6C445, 0xFFE47A);
-    drawStat(112, 80, "C", s.cleanliness, 0x4FC3F7, 0x76E4E8);
-    drawStat(112, 90, "+", s.health, 0x55D98A, 0x8BE6A8);
+    drawStat(112, 50, "F", 0, s.fullness, 0xFF6B6B, 0xFF9A76);
+    drawStat(112, 60, "H", 1, s.happiness, 0xFF70A6, 0xFF9EC4);
+    drawStat(112, 70, "E", 2, s.energy, 0xF6C445, 0xFFE47A);
+    drawStat(112, 80, "C", 3, s.cleanliness, 0x4FC3F7, 0x76E4E8);
+    drawStat(112, 90, "+", 4, s.health, 0x55D98A, 0x8BE6A8);
 
     M5.Display.fillRoundRect(6, 110, 228, 20, 7, 0x3186);
     M5.Display.setTextColor(TFT_LIGHTGREY, 0x3186);

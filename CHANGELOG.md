@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7.1
+
+- Renamed Sensors to Settings and moved Rename and the always-visible Color picker above Reactions.
+- Simplified Home to pet identity, centered mood, age, and stats.
+- Added matching color-coded 9x9 strawberry, heart, lightning, droplet, and health icons between the StickS3 letters and stat bars.
+- Retained all five full-width device bars and the existing animation refresh rate.
+
 ## v0.7.0
 
 - Bundled Nunito Sans variable WOFF2 in flash for consistent offline WebUI typography, with system-font fallback.
