@@ -3,11 +3,13 @@
 
 #include "MotionSensor.h"
 #include "PetEngine.h"
+#include "PetAssets.h"
+#include "PetVisual.h"
 #include "SoundSensor.h"
 #include "WebPortal.h"
 
 namespace {
-constexpr char kVersion[] = "v0.4.0";
+constexpr char kVersion[] = "v0.5.0";
 constexpr uint8_t kSelectPin = 11;
 constexpr uint8_t kNextPin = 12;
 constexpr uint8_t kBrightness = 90;
@@ -86,68 +88,21 @@ void drawStat(int x, int y, const char *label, uint8_t value, uint16_t color) {
     if (width > 0) M5.Display.fillRoundRect(x + 20, y + 2, width, 3, 1, color);
 }
 
-void drawPet(const PetSnapshot &s, SoundLevel soundLevel, MotionState motionState, bool blink) {
-    int bob = (frameNumber % 4 < 2) ? 0 : 2;
-    if (soundLevel == SoundLevel::Medium) bob -= (frameNumber % 2) * 4;
-    if (soundLevel == SoundLevel::High) bob -= (frameNumber % 2) * 8;
+void drawPet(const PetSnapshot &s, SoundLevel soundLevel, MotionState motionState) {
+    const PetPose pose = selectPetPose(s, soundLevel, motionState);
+    int bob = s.sleeping ? 0 : (frameNumber % 4 < 2 ? 0 : 2);
+    if (pose == PetPose::Excited) bob -= (frameNumber % 2) * 4;
+    if (pose == PetPose::Surprised) bob -= (frameNumber % 2) * 6;
     int motionX = 0;
     if (motionState == MotionState::TiltLeft) motionX = -5;
     else if (motionState == MotionState::TiltRight) motionX = 5;
-    else if (motionState == MotionState::Shake) motionX = frameNumber % 2 ? -6 : 6;
+    else if (motionState == MotionState::Shake) motionX = frameNumber % 2 ? -5 : 5;
     else if (motionState == MotionState::Rocking) motionX = frameNumber % 4 < 2 ? -4 : 4;
-    if (motionState == MotionState::TiltForward) bob += 3;
-    else if (motionState == MotionState::TiltBack) bob -= 3;
-    const int cx = 57 + motionX;
-    const int cy = 62 + bob;
-    const uint16_t body = s.health < 35 ? TFT_LIGHTGREY : TFT_GREEN;
-    M5.Display.fillTriangle(cx - 25, cy - 23, cx - 12, cy - 43, cx - 2, cy - 21, body);
-    M5.Display.fillTriangle(cx + 25, cy - 23, cx + 12, cy - 43, cx + 2, cy - 21, body);
-    M5.Display.fillEllipse(cx, cy, 37, 34, body);
-    M5.Display.fillEllipse(cx - 22, cy + 5, 7, 4, TFT_PINK);
-    M5.Display.fillEllipse(cx + 22, cy + 5, 7, 4, TFT_PINK);
-
-    if (s.sleeping || (blink && soundLevel != SoundLevel::High)) {
-        M5.Display.drawLine(cx - 19, cy - 4, cx - 8, cy - 4, TFT_BLACK);
-        M5.Display.drawLine(cx + 8, cy - 4, cx + 19, cy - 4, TFT_BLACK);
-    } else {
-        M5.Display.fillEllipse(cx - 14, cy - 5, 4, 7, TFT_BLACK);
-        M5.Display.fillEllipse(cx + 14, cy - 5, 4, 7, TFT_BLACK);
-        M5.Display.drawPixel(cx - 13, cy - 7, TFT_WHITE);
-        M5.Display.drawPixel(cx + 15, cy - 7, TFT_WHITE);
-    }
-
-    if (soundLevel == SoundLevel::High || s.mood == "hungry" || s.mood == "unwell") M5.Display.drawCircle(cx, cy + 14, 5, TFT_BLACK);
-    else {
-        M5.Display.drawLine(cx - 6, cy + 11, cx, cy + 15, TFT_BLACK);
-        M5.Display.drawLine(cx, cy + 15, cx + 6, cy + 11, TFT_BLACK);
-    }
-
-    if (s.sleeping) {
-        M5.Display.setTextColor(TFT_SKYBLUE, TFT_BLACK);
-        M5.Display.setTextSize(2);
-        M5.Display.setCursor(88, 31);
-        M5.Display.print("z");
-    }
-
-    M5.Display.setTextSize(1);
-    if (soundLevel == SoundLevel::Low) {
-        M5.Display.setTextColor(TFT_CYAN, TFT_BLACK);
-        M5.Display.setCursor(91, 48);
-        M5.Display.print(")");
-        M5.Display.setCursor(96, 45);
-        M5.Display.print(")");
-    } else if (soundLevel == SoundLevel::Medium) {
-        M5.Display.setTextColor(TFT_PINK, TFT_BLACK);
-        M5.Display.setCursor(88, 35);
-        M5.Display.print("<3");
-    } else if (soundLevel == SoundLevel::High) {
-        M5.Display.setTextColor(TFT_YELLOW, TFT_BLACK);
-        M5.Display.setTextSize(2);
-        M5.Display.setCursor(90, 30);
-        M5.Display.print("!");
-    }
+    if (motionState == MotionState::TiltForward) bob += 2;
+    else if (motionState == MotionState::TiltBack) bob -= 2;
+    const PetImage &image = PetAssets::device[static_cast<uint8_t>(pose)];
+    M5.Display.drawPng(image.data, image.size, 16 + motionX, 20 + bob);
 }
-
 void drawMainScreen() {
     const PetSnapshot s = pet.snapshot();
     const SoundSnapshot audio = sound.snapshot();
@@ -162,14 +117,14 @@ void drawMainScreen() {
     M5.Display.setCursor(173, 5);
     M5.Display.printf("2x<  W%u", portal.connectedClients());
 
-    drawPet(s, audio.level, movement.state, frameNumber % 18 == 0);
+    drawPet(s, audio.level, movement.state);
     M5.Display.setTextSize(1);
     M5.Display.setTextColor(audio.level == SoundLevel::High ? TFT_YELLOW : TFT_CYAN, TFT_BLACK);
     M5.Display.setCursor(7, 101);
     M5.Display.printf("MIC:%s", SoundSensor::shortLabel(audio.level));
     M5.Display.setTextColor(movement.state == MotionState::Shake || movement.state == MotionState::Rocking ? TFT_YELLOW : TFT_GREEN,
                             TFT_BLACK);
-    M5.Display.setCursor(65, 101);
+    M5.Display.setCursor(137, 101);
     M5.Display.printf("MOV:%s", MotionSensor::shortLabel(movement.state));
     M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
     M5.Display.setTextSize(2);

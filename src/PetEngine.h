@@ -14,6 +14,7 @@ struct PetSnapshot {
     uint8_t health;
     uint32_t ageMinutes;
     bool sleeping;
+    bool celebrating;
     String mood;
     String message;
 };
@@ -46,6 +47,7 @@ class PetEngine {
     uint32_t lastNeedTick_ = 0;
     uint32_t lastAgeTick_ = 0;
     uint32_t lastSave_ = 0;
+    uint32_t celebrateUntil_ = 0;
     String message_ = "A new friendship begins!";
 
     static uint8_t clampStat(int value);

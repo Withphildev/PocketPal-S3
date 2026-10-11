@@ -2,11 +2,12 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.4.0.** Sound and Motion Reactions are working on physical hardware, and the redesigned WebUI is ready for device testing.
+> **Early development — v0.5.0.** The original chibi dragon now appears on both displays. Physical-device testing of artwork and reaction timing is next.
 
 ## First milestone
 
 - Animated original pet rendered directly on the StickS3.
+- Matching chibi dragon artwork with six expressions on the device and browser.
 - Fullness, happiness, energy, cleanliness, and health needs.
 - Feed, play, clean, sleep/wake, and pet interactions.
 - Persistent pet name, age, needs, and sleep state in NVS.
@@ -49,6 +50,18 @@ The responsive WebUI is organized into three sections:
 - **Sensors:** live sound and motion meters, sensitivity settings, microphone mute, and privacy status.
 
 The interface is bundled inside the firmware with no external fonts, scripts, images, or internet dependencies.
+
+## Dragon artwork
+
+The original mint-green chibi dragon has idle, happy, listening, excited,
+sleeping, and surprised poses. Sleeping takes priority over microphone
+reactions. Playing briefly triggers the excited pose. Movement still uses
+gentle bobbing, tilt, shake, and rocking; the artwork is a set of expressions,
+not a frame-by-frame animation sheet.
+
+Browser artwork is served from firmware at 240 pixels; the StickS3 uses
+80-pixel images. Originals, converted images, a preview, and regeneration
+instructions are in [assets/dragon](assets/dragon/README.md).
 
 ## Sound Reactions and privacy
 
@@ -94,7 +107,7 @@ The environment uses the same tested M5StickS3 board configuration as PocketLab.
 ## Planned
 
 1. Physical-device testing and threshold tuning for Motion Interactions and the redesigned WebUI.
-2. Original production pet artwork and expanded animation states.
+2. Further dragon animation frames and expression tuning after physical testing.
 3. Progression and content: personality, growth, inventory, memories, achievements, decorations, and mini-games.
 4. Data and connectivity: save backup/restore, optional home-network mode, and carefully designed BLE visits.
 5. Release preparation: battery testing, stability testing, privacy documentation, final packaging, and M5Burner submission.

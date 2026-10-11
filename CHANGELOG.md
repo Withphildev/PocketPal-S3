@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.0
+
+- Replaced the placeholder pet with the owner's original chibi dragon artwork on the StickS3 and WebUI.
+- Added aligned idle, happy, listening, excited, sleeping, and surprised expressions.
+- Added a shared pose selector so both displays use the same reaction priorities.
+- Added a short excited reaction after Play and retained bobbing and tilt/shake/rock movement.
+- Embedded browser PNG routes and compact device PNGs in flash; no filesystem upload or internet access is required.
+- Preserved source artwork and added a repeatable asset conversion tool and small-screen preview.
+- Moved the device motion label clear of the cleanliness stat.
+
 ## v0.4.0
 
 - Redesigned the offline WebUI with a richer pet room and clearer visual hierarchy.

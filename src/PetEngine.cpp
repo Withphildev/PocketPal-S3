@@ -80,6 +80,7 @@ bool PetEngine::apply(PetAction action) {
     }
     updateHealth();
     dirty_ = true;
+    celebrateUntil_ = action == PetAction::Play ? millis() + 2500 : 0;
     save();
     return true;
 }
@@ -134,7 +135,8 @@ String PetEngine::mood() const {
 }
 
 PetSnapshot PetEngine::snapshot() const {
-    return {name_, fullness_, happiness_, energy_, cleanliness_, health_, ageMinutes_, sleeping_, mood(), message_};
+    const bool celebrating = celebrateUntil_ != 0 && static_cast<int32_t>(celebrateUntil_ - millis()) > 0;
+    return {name_, fullness_, happiness_, energy_, cleanliness_, health_, ageMinutes_, sleeping_, celebrating, mood(), message_};
 }
 
 void PetEngine::save() {

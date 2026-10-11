@@ -1,0 +1,69 @@
+// Browser QA against the actual embedded page and converted PNGs.
+// Set NODE_PATH to a directory containing Playwright; run node tools/preview_webui.cjs.
+const fs = require('node:fs');
+const path = require('node:path');
+const http = require('node:http');
+const assert = require('node:assert/strict');
+const { chromium } = require('playwright');
+const root = path.resolve(__dirname, '..');
+const html = fs.readFileSync(path.join(root, 'src/WebPortal.cpp'), 'utf8').match(/R"HTML\(([\s\S]*?)\)HTML"/)[1];
+const poses = ['idle', 'happy', 'listening', 'excited', 'sleeping', 'surprised'];
+const state = {name: 'Pip', mood: 'joyful', fullness: 82, happiness: 86, energy: 78,
+    cleanliness: 90, health: 100, ageMinutes: 12, sleeping: false, pose: 'happy',
+    message: 'Welcome back, Pip!', sound: {level: 'quiet', meter: 0, sensitivity: 1, muted: false},
+    motion: {state: 'still', meter: 0, sensitivity: 2}};
+const server = http.createServer((req, res) => {
+    if (req.url === '/api/state') {
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify(state));
+    }
+    const match = req.url.match(/^\/pet\/(\w+)\.png$/);
+    if (match && poses.includes(match[1])) {
+        res.setHeader('Content-Type', 'image/png');
+        return res.end(fs.readFileSync(path.join(root, 'assets/dragon/web', match[1] + '.png')));
+    }
+    res.setHeader('Content-Type', 'text/html');
+    res.end(html);
+});
+(async () => {
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const browser = await chromium.launch({headless: true,
+        executablePath: process.env.POCKETPAL_BROWSER || chromium.executablePath()});
+    try {
+        const page = await browser.newPage({viewport: {width: 390, height: 844}, deviceScaleFactor: 1});
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.goto('http://127.0.0.1:' + server.address().port);
+        for (const pose of poses) {
+            state.pose = pose;
+            state.sleeping = pose === 'sleeping';
+            await page.evaluate(() => refresh());
+            await page.waitForFunction(() => {
+                const img = document.getElementById('dragon');
+                return img.complete && img.naturalWidth === 240;
+            });
+            assert.equal(await page.locator('#dragon').getAttribute('src'), '/pet/' + pose + '.png');
+        }
+        state.pose = 'happy'; state.sleeping = false;
+        await page.evaluate(() => refresh());
+        const dragon = await page.locator('#dragon').boundingBox();
+        const room = await page.locator('.room').boundingBox();
+        assert(dragon.x >= room.x && dragon.x + dragon.width <= room.x + room.width);
+        assert(dragon.y >= room.y && dragon.y + dragon.height <= room.y + room.height);
+        for (const panel of ['care', 'sensors', 'home']) {
+            await page.locator('[data-panel="' + panel + '"]').click();
+            assert(await page.locator('#' + panel).isVisible());
+        }
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        const output = path.join(root, 'assets/dragon');
+        await page.screenshot({path: path.join(output, 'webui-mobile-preview.png'), fullPage: true});
+        await page.setViewportSize({width: 1100, height: 900});
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        await page.screenshot({path: path.join(output, 'webui-desktop-preview.png')});
+        assert.deepEqual(errors, []);
+        console.log('PASS: all six PNGs decoded, room bounds, navigation, mobile width, and JavaScript.');
+    } finally {
+        await browser.close();
+        server.close();
+    }
+})().catch(error => { console.error(error); server.close(); process.exitCode = 1; });
