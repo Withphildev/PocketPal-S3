@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.9.0 — Music & Play
+
+- Bundled the user's unchanged 12-second MP3 for optional, offline browser music.
+- Added Settings → Music with explicit tap-to-play, a 15% starting volume, saved per-browser preferences, pause-on-background behavior, and error/retry feedback.
+- Decode the MP3 once and loop its buffer locally, with no per-loop network requests.
+- Added Care → Ball time: tap/keyboard keep-up play, Pip reactions, consecutive tap scoring, and a persistent device best score with save retry.
+- Kept the game penalty-free: no care-stat changes or energy spending, including on misses.
+- Retained existing care actions, sensor behavior, artwork, splash, pet saves, themes, and quiet S3 redraw scheduling.
+- Added browser tests for real audio decoding/playback state and game interactions, plus native score-input validation tests.
+
 ## v0.8.1
 
 - Added the supplied Nova-and-Pip splash at 240x135 for 2.5 seconds before the existing connection flow.

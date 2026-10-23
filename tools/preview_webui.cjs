@@ -15,8 +15,12 @@ const state = {name: 'Pip', theme: 'teal', mood: 'joyful', fullness: 82, happine
 let failThemeSave = false;
 let failAction = false;
 let careStarted = 0;
+let careFrozenAt = null;
+const controls = {failScore:false};
+state.ballBest = 0;
 state.care = {id:0, effect:'none', elapsed:0, duration:0};
 function startCare(action) {
+    careFrozenAt = null;
     if (action === 'sleep') state.sleeping = !state.sleeping;
     else if (action !== 'clean') state.sleeping = false;
     state.pose = state.sleeping ? 'sleeping' : action==='play' ? 'excited' : 'happy';
@@ -27,6 +31,26 @@ function startCare(action) {
 }
 const commands = [];
 const server = http.createServer((req, res) => {
+    if (req.url === '/music-play-v1.js') {
+        res.setHeader('Content-Type','application/javascript');
+        return res.end(fs.readFileSync(path.join(root,'src/MusicPlay.js')));
+    }
+    if (req.url === '/audio/canopy-v1.mp3') {
+        res.setHeader('Content-Type','audio/mpeg');
+        return res.end(fs.readFileSync(path.join(root,'assets/music/Short_Afternoon_in_the_Canopy.mp3')));
+    }
+    if (req.url === '/api/ball-best' && req.method==='POST') {
+        let body='';req.on('data',chunk=>body+=chunk);req.on('end',()=>{
+            commands.push({url:req.url,body});
+            const score=new URLSearchParams(body).get('score');
+            res.setHeader('Content-Type','application/json');
+            if(controls.failScore || !/^\d{1,5}$/.test(score||'')) {
+                res.statusCode=controls.failScore?500:400;return res.end(JSON.stringify({ok:false}));
+            }
+            state.ballBest=Math.max(state.ballBest,Number(score));
+            res.end(JSON.stringify({ok:true,best:state.ballBest}));
+        });return;
+    }
     if (req.url === '/fonts/nunito-sans-v1.woff2') {
         res.setHeader('Content-Type', 'font/woff2');
         return res.end(fs.readFileSync(path.join(root, 'assets/fonts/nunito-sans-latin.woff2')));
@@ -45,7 +69,7 @@ const server = http.createServer((req, res) => {
         return;
     }
     if (req.url === '/api/state') {
-        state.care.elapsed = Date.now() - careStarted;
+        state.care.elapsed = careFrozenAt ?? (Date.now() - careStarted);
         if (state.care.elapsed >= state.care.duration) state.care.effect = 'none';
         res.setHeader('Content-Type', 'application/json');
         return res.end(JSON.stringify(state));
@@ -124,7 +148,7 @@ const server = http.createServer((req, res) => {
         }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         await page.locator('[data-panel="settings"]').click();
-        assert.equal(await page.locator('#settings h3').allTextContents().then(text => text.join(',')), 'Rename,Color,Reactions');
+        assert.equal(await page.locator('#settings h3').allTextContents().then(text => text.join(',')), 'Rename,Color,Music,Reactions');
         assert.equal(await page.locator('#home .settings, #home .theme-picker').count(), 0);
         await page.locator('#newName').fill('Nova');
         await page.locator('.settings .primary').click();
@@ -146,6 +170,7 @@ const server = http.createServer((req, res) => {
         const propsOutput = path.join(root,'assets/props');
         for (const [action,time] of [['feed',1000],['play',1200],['clean',1500],['pet',900],['sleep',1100]]) {
             startCare(action); careStarted=Date.now()-time;
+            careFrozenAt=time;
             await page.evaluate(() => refresh());
             await page.waitForFunction(() => [...document.querySelectorAll('#careLayer img, #careBlanket')].every(img=>img.complete&&img.naturalWidth>0));
             // Pause deterministically without affecting the application's event tracking.
@@ -158,6 +183,7 @@ const server = http.createServer((req, res) => {
             assert(await page.evaluate(first=>careAnimations[0]===first,firstHandle));
             await firstHandle.dispose();
         }
+        careFrozenAt=null;
         careStarted=Date.now()-2000;
         await page.evaluate(()=>refresh());
         assert(await page.locator('#careBlanket').isVisible());
@@ -291,6 +317,7 @@ const server = http.createServer((req, res) => {
         await page.locator('[data-theme-choice="white"]').click();
         await page.waitForFunction(() => !savingTheme);
         assert.match(await page.locator('#colorMessage').textContent(), /Color saved/);
+        await require('./test_music_play.cjs')({page,browser,state,controls,commands,root,assert});
         const output = path.join(root, 'assets/dragon');
         await page.locator('[data-panel="home"]').click();
         await page.evaluate(() => window.scrollTo(0, 0));

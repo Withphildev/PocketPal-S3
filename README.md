@@ -2,7 +2,7 @@
 
 PocketPal S3 is an interactive virtual pet with a live, offline WebUI for the M5StickS3.
 
-> **Early development — v0.8.1.** A 2.5-second Nova-and-Pip startup splash and event-driven StickS3 redraws accompany the floating care props. The forest WebUI has offline typography, matching line icons, and six gradient color themes.
+> **Early development — v0.9.0 “Music & Play.”** Optional offline browser music and a soccer-ball keep-up game join Pip's forest room. Existing saved pet data, splash, care props, and event-driven StickS3 redraws are retained.
 
 ## First milestone
 
@@ -47,8 +47,8 @@ PocketPal also advertises `http://pocketpal.local` through mDNS as a fallback on
 The responsive WebUI is organized into three sections:
 
 - **Home:** live room, pet identity, mood, age, and care stats.
-- **Care:** large touch-friendly controls for feeding, playing, cleaning, sleeping, and petting.
-- **Settings:** Rename, Color, then Reactions (sound and motion meters, sensitivity, mute, and privacy).
+- **Care:** touch-friendly care controls and an optional Ball time keep-up game.
+- **Settings:** Rename, Color, Music, then Reactions (sound and motion meters, sensitivity, mute, and privacy).
 
 The interface is bundled inside the firmware with no external fonts, scripts, images, or internet dependencies.
 Nunito Sans is served locally from flash, with system-font fallback. A consistent
@@ -73,6 +73,34 @@ Fullness is coral, Happiness pink, Energy gold, Cleanliness aqua, and Health
 green. These stat gradients stay consistent across themes and match the five
 bars on the StickS3. Each device row has a matching small icon between its letter
 and bar; Health is labeled `+`.
+
+## Music & Play
+
+**Settings → Music** plays the supplied *Short Afternoon in the Canopy* track
+through the phone/browser, not the StickS3. The original MP3 is embedded
+unchanged and downloaded only on the first Play tap. The browser decodes it
+once and loops the decoded audio locally, without a request at every loop.
+Music starts off, with volume at 15%; volume and the enabled preference are
+saved in that browser's local storage when available. Returning or reloading
+still requires a tap, so music never unexpectedly autoplays. Switching away
+or locking the phone pauses playback; tap Play music to resume.
+
+The nearby phone speaker can trigger the S3 microphone's Sound Reactions.
+Mute those separately in Settings if desired. Music requires a browser with
+Web Audio support; use a normal browser if a captive-portal window restricts it.
+
+**Care → Ball time** is a browser-only, optional keep-up game. Tap Play ball,
+then tap the ball (or focus it and use Space/Enter) to keep it airborne. Pip
+cheers using existing happy/excited artwork. The score counts successful taps,
+and a miss ends the round without changing care stats, happiness, or energy.
+The best score is saved in device NVS, survives reboot, and is shared by
+connected browsers. Only a new record writes to NVS. If saving fails, Retry
+save keeps the result available in the current page until the connection returns
+(keep the page open until saved). Sleep, leaving
+Care, or hiding the page ends the round without a penalty. Reduced-motion
+mode keeps essential ball movement but removes decorative rotation.
+
+Sources and regeneration: [assets/music](assets/music/README.md).
 
 ## Dragon artwork
 

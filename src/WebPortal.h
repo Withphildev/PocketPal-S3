@@ -28,6 +28,7 @@ class WebPortal {
     String password_;
     Preferences preferences_;
     String theme_ = "teal";
+    uint32_t ballBest_ = 0;
 
     void configureRoutes();
     void sendState();
@@ -36,6 +37,7 @@ class WebPortal {
     void handleSound();
     void handleMotion();
     void handleTheme();
+    void handleBallBest();
     static bool validTheme(const String &theme);
     static String jsonEscape(const String &value);
 };

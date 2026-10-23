@@ -7,6 +7,8 @@
 #include "PropAssets.h"
 #include "RoomAssets.h"
 #include "PetVisual.h"
+#include "MusicPlayAssets.h"
+#include "BallScore.h"
 
 namespace {
 constexpr uint16_t kDnsPort = 53;
@@ -66,6 +68,7 @@ main{padding:24px 20px 36px}.topbar{padding:14px 16px;margin-bottom:16px}.brand{
 @media(max-width:620px){main{padding:14px 12px 28px}.topbar{padding:12px;margin-bottom:14px}.brand{gap:10px}.brand h1{font-size:20px}.brand small{font-size:11px}.card{padding:20px}.tabs{position:static;margin:16px 0}.action{min-height:128px}.room{border-radius:24px}.bubble{font-size:13px}.sensor{padding:18px}}
 @media(max-width:360px){.brand h1{font-size:18px}.brand small{font-size:10px}.logo{width:36px;height:36px}.topbar{padding:10px}.tab{font-size:13px;gap:5px}.tab .icon{width:17px;height:17px}.card{padding:16px}.stats{padding:0 12px}.theme-choice{padding:8px;gap:7px;font-size:11px}.swatch{width:18px;height:18px}}
 .care-layer{position:absolute;inset:0;pointer-events:none;overflow:visible}.care-prop{position:absolute;height:auto;object-fit:contain;filter:drop-shadow(0 3px 3px #0002)}.care-blanket{position:absolute;left:12%;top:58%;width:76%;height:auto;pointer-events:none}.care-blanket[hidden]{display:none}
+.music-controls{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:14px;margin-top:18px}.music-controls label{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}.music-controls input{grid-column:1/-1;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}.ball-card{margin-top:18px}.ball-scores{display:flex;justify-content:space-between;gap:16px;margin:0 0 14px;color:var(--muted)}.ball-scores strong{color:var(--ink);font-size:22px;font-variant-numeric:tabular-nums;margin-left:7px}.ball-court{position:relative;height:240px;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#365941 url('/room/forest-wide.jpg') center/cover}.ball-court:after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 65%,#10251d55);pointer-events:none}.ball-court #gamePip{position:absolute;width:112px;right:10px;bottom:10px;pointer-events:none;filter:drop-shadow(0 3px 3px #0004)}.game-ball{position:absolute;left:42%;top:55%;z-index:2;width:64px;height:64px;padding:4px;border:0;border-radius:50%;background:transparent;touch-action:manipulation;cursor:pointer}.game-ball img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}.game-ball:disabled{opacity:.7;cursor:default}.game-ball:focus-visible{outline:3px solid #fff;outline-offset:0}.ball-controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}#ballRetry[hidden]{display:none}.ball-controls button:disabled{opacity:.6;cursor:wait}
 </style></head><body><svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></symbol><symbol id="icon-heart" viewBox="0 0 24 24"><path d="M20 5c-3-3-6-1-8 1-2-2-5-4-8-1-4 4 0 9 8 15 8-6 12-11 8-15Z"/></symbol><symbol id="icon-sparkle" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></symbol><symbol id="icon-sensors" viewBox="0 0 24 24"><path d="M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12"/><circle cx="5" cy="9" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="19" cy="7" r="2"/></symbol><symbol id="icon-berry" viewBox="0 0 24 24"><path d="M7 8c-6 1-3 9 5 13 8-4 11-12 5-13"/><path d="m7 5 5 3 5-3M12 8V3"/><path d="M8 12h.1M12 15h.1M16 12h.1M12 19h.1"/></symbol><symbol id="icon-bolt" viewBox="0 0 24 24"><path d="m14 2-10 12h7l-1 8 10-12h-7Z"/></symbol><symbol id="icon-drop" viewBox="0 0 24 24"><path d="M12 3c-2 3-7 7-7 12a7 7 0 0 0 14 0c0-5-5-9-7-12Z"/><path d="M8 15a4 4 0 0 0 4 4"/></symbol><symbol id="icon-health" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6Z"/></symbol><symbol id="icon-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m12 7 5 4-2 6H9l-2-6Z" fill="currentColor" fill-opacity=".12"/><path d="M12 7V2m5 9 4.5-2M15 17l3 3M9 17l-3 3m1-9L2.5 9"/></symbol><symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20 14a9 9 0 0 1-10-11 9 9 0 1 0 10 11Z"/></symbol><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-4 0h8"/></symbol><symbol id="icon-motion" viewBox="0 0 24 24"><path d="m12 3 9 9-9 9-9-9Z"/><path d="m8 12 4-4 4 4m-4-4v8"/></symbol><symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 2-2c0-1-1-2-1-3s1-2 3-2h2a2 2 0 0 0 2-2 9 9 0 0 0-9-9Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="15" cy="7" r=".8"/></symbol><symbol id="icon-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></symbol></defs></svg><main>
 <header class="topbar"><div class="brand"><div class="logo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-heart"/></svg></div><div><h1>PocketPal S3</h1><small>Your tiny offline companion</small></div></div><div class="online"><span class="dot"></span><span>Local &amp; live</span></div></header>
 <section class="room" aria-label="PocketPal forest clearing"><div id="bubble" class="bubble" aria-live="polite">Waking up…</div><div class="ground-shadow"></div><div id="pet" class="pet"><img id="dragon" class="dragon" src="/pet/idle.png" alt="Mint-green PocketPal dragon" width="240" height="240"><img id="careBlanket" class="care-blanket" src="/props/blanket.png" alt="" aria-hidden="true" hidden><div id="careLayer" class="care-layer" aria-hidden="true"></div></div><div class="room-meta"><span id="soundChip" class="chip">Mic · calibrating</span><span id="motionChip" class="chip">Motion · calibrating</span></div></section>
@@ -105,6 +108,7 @@ function clearCare() {
     byId('careLayer').replaceChildren();
 }
 function syncCare(state) {
+    if (typeof syncMusicPlay === 'function') syncMusicPlay(state);
     const care = state.care;
     byId('careBlanket').hidden = !state.sleeping && care?.effect !== 'wake';
     if (!care) return;
@@ -168,8 +172,7 @@ function syncCare(state) {
     }
 }
 // END CARE ANIMATION
-refresh();setInterval(refresh,500);
-</script></body></html>
+</script><script src="/music-play-v1.js"></script><script>refresh();setInterval(refresh,500);</script></body></html>
 )HTML";
 }
 
@@ -179,6 +182,8 @@ void WebPortal::begin() {
     preferences_.begin("palui", false);
     theme_ = preferences_.getString("theme", "teal");
     if (!validTheme(theme_)) theme_ = "teal";
+    ballBest_ = preferences_.getUInt("ballbest", 0);
+    if (ballBest_ > 99999) ballBest_ = 0;
     const uint64_t chipId = ESP.getEfuseMac();
     char suffix[5];
     snprintf(suffix, sizeof(suffix), "%04X", static_cast<uint16_t>(chipId));
@@ -225,6 +230,7 @@ void WebPortal::sendState() {
     json.reserve(640);
     json += "{\"name\":\"" + jsonEscape(s.name) + "\"";
     json += ",\"theme\":\"" + theme_ + "\"";
+    json += ",\"ballBest\":" + String(ballBest_);
     json += ",\"care\":{\"id\":" + String(care.id);
     json += ",\"effect\":\"" + String(PetEngine::careName(care.effect)) + "\"";
     json += ",\"elapsed\":" + String(care.elapsed);
@@ -316,7 +322,33 @@ void WebPortal::handleTheme() {
     server_.send(200, "application/json", "{\"ok\":true}");
 }
 
+void WebPortal::handleBallBest() {
+    const String input = server_.arg("score");
+    uint32_t score = 0;
+    if (!server_.hasArg("score") || !parseBallScore(input.c_str(), input.length(), score)) {
+        server_.send(400, "application/json", "{\"ok\":false}");
+        return;
+    }
+    if (score > ballBest_) {
+        if (preferences_.putUInt("ballbest", score) != sizeof(uint32_t)) {
+            server_.send(500, "application/json", "{\"ok\":false}");
+            return;
+        }
+        ballBest_ = score;
+    }
+    server_.send(200, "application/json", "{\"ok\":true,\"best\":" + String(ballBest_) + "}");
+}
+
 void WebPortal::configureRoutes() {
+    server_.on("/music-play-v1.js", HTTP_GET, [this]() {
+        server_.sendHeader("Cache-Control", "no-cache");
+        server_.send_P(200, "application/javascript", MusicPlayAssets::script);
+    });
+    server_.on("/audio/canopy-v1.mp3", HTTP_GET, [this]() {
+        server_.sendHeader("Cache-Control", "public, max-age=31536000, immutable");
+        server_.send_P(200, "audio/mpeg", reinterpret_cast<const char *>(MusicPlayAssets::track), sizeof(MusicPlayAssets::track));
+    });
+    server_.on("/api/ball-best", HTTP_POST, [this]() { handleBallBest(); });
     for (uint8_t index = 0; index < 7; ++index) {
         const String path = String("/props/") + PropAssets::names[index] + ".png";
         server_.on(path.c_str(), HTTP_GET, [this, index]() {

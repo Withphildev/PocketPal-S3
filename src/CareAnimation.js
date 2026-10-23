@@ -8,6 +8,7 @@ function clearCare() {
     byId('careLayer').replaceChildren();
 }
 function syncCare(state) {
+    if (typeof syncMusicPlay === 'function') syncMusicPlay(state);
     const care = state.care;
     byId('careBlanket').hidden = !state.sleeping && care?.effect !== 'wake';
     if (!care) return;
